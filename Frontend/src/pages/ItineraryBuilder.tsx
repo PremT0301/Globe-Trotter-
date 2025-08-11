@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, Reorder, AnimatePresence } from 'framer-motion';
-import { Plus, GripVertical, Clock, MapPin, Trash2, Edit3, Save, Calendar, ArrowRight } from 'lucide-react';
+import { Plus, GripVertical, Clock, MapPin, Trash2, Edit3, Save, Calendar, ArrowRight, Search } from 'lucide-react';
 import { api } from '../lib/api';
 import { useToast } from '../context/ToastContext';
 import ActivityForm from '../components/ActivityForm';
@@ -23,6 +23,14 @@ interface Day {
   activities: Activity[];
 }
 
+interface City {
+  _id: string;
+  name: string;
+  country: string;
+  costIndex?: number;
+  popularityScore?: number;
+}
+
 const ItineraryBuilder: React.FC = () => {
   const { tripId } = useParams();
   const navigate = useNavigate();
@@ -33,8 +41,25 @@ const ItineraryBuilder: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showActivityForm, setShowActivityForm] = useState(false);
+  const [cities, setCities] = useState<City[]>([]);
+  const [selectedCity, setSelectedCity] = useState<City | null>(null);
+  const [showCitySelector, setShowCitySelector] = useState(false);
+  const [citySearchQuery, setCitySearchQuery] = useState('');
 
   const [itinerary, setItinerary] = useState<Day[]>([]);
+
+  // Fetch cities for selection
+  useEffect(() => {
+    const fetchCities = async () => {
+      try {
+        const citiesData = await api.get('/api/cities/popular/list?limit=20') as City[];
+        setCities(citiesData);
+      } catch (error) {
+        console.error('Error fetching cities:', error);
+      }
+    };
+    fetchCities();
+  }, []);
 
   // Fetch trip data and generate itinerary days
   useEffect(() => {
@@ -70,21 +95,12 @@ const ItineraryBuilder: React.FC = () => {
         try {
           const itineraryData = await api.get(`/api/itinerary/${tripId}`) as any[];
           console.log('Fetched itinerary data:', itineraryData);
-          console.log('Generated days:', days);
-          
-          // Debug: Check if we have any itinerary data
-          if (itineraryData.length > 0) {
-            console.log('First itinerary item date:', itineraryData[0].date);
-            console.log('First itinerary item activityId:', itineraryData[0].activityId);
-          }
           
           // Populate activities from database
           const updatedDays = days.map(day => {
             const dayActivities = itineraryData
               .filter(item => {
-                // Convert both dates to YYYY-MM-DD format for comparison
                 const itemDate = new Date(item.date).toISOString().split('T')[0];
-                console.log(`Comparing item date: ${itemDate} with day date: ${day.date}`);
                 return itemDate === day.date;
               })
               .sort((a, b) => a.orderIndex - b.orderIndex)
@@ -92,11 +108,11 @@ const ItineraryBuilder: React.FC = () => {
                 // If activityId exists, the activity data is in the populated activity
                 if (item.activityId) {
                   return {
-                    id: item.activityId._id,
+                    id: item._id, // Use itinerary item ID for deletion
                     title: item.activityId.name,
                     type: item.activityId.type,
                     time: '12:00', // Default time since it's not stored in Activity model
-                    location: item.activityId.cityId?.name || 'Unknown Location',
+                    location: item.cityId?.name || 'Unknown Location',
                     duration: `${item.activityId.duration} minutes`,
                     notes: item.notes || item.activityId.description,
                     cost: item.activityId.cost
@@ -104,7 +120,11 @@ const ItineraryBuilder: React.FC = () => {
                 } else {
                   // Fallback for legacy data stored in notes
                   try {
-                    return JSON.parse(item.notes);
+                    const parsedData = JSON.parse(item.notes);
+                    return {
+                      id: item._id,
+                      ...parsedData
+                    };
                   } catch (error) {
                     console.error('Error parsing activity data:', error);
                     return null;
@@ -159,34 +179,28 @@ const ItineraryBuilder: React.FC = () => {
   };
 
   const updateActivities = (dayIndex: number, newActivities: Activity[]) => {
-    console.log('Updating activities for day:', dayIndex);
-    console.log('New activities:', newActivities);
-    
     setItinerary(prev => {
-      console.log('Previous itinerary state:', prev);
       const updated = prev.map((day, index) => 
         index === dayIndex ? { ...day, activities: newActivities } : day
       );
-      console.log('Updated itinerary:', updated);
-      console.log('Activities for selected day after update:', updated[dayIndex]?.activities);
       return updated;
     });
   };
 
   const addActivity = () => {
+    if (!selectedCity) {
+      setShowCitySelector(true);
+      return;
+    }
     setShowActivityForm(true);
   };
 
   const handleActivitySave = async (activityData: Activity) => {
-    console.log('Saving activity:', activityData);
-    console.log('Selected day:', selectedDay);
-    console.log('Current itinerary:', itinerary);
-    
-    if (selectedDay >= 0 && selectedDay < itinerary.length) {
+    if (selectedDay >= 0 && selectedDay < itinerary.length && selectedCity) {
       try {
         // First, create the activity in the Activity table
         const activityResponse = await api.post('/api/activities', {
-          cityId: '507f1f77bcf86cd799439011', // Default city ID - should be dynamic based on trip destination
+          cityId: selectedCity._id,
           name: activityData.title,
           type: activityData.type,
           cost: activityData.cost || 0,
@@ -196,55 +210,52 @@ const ItineraryBuilder: React.FC = () => {
         }) as any;
 
         // Then, create the itinerary entry linking to the activity
-        await api.post('/api/itinerary', {
+        const itineraryResponse = await api.post('/api/itinerary', {
           tripId,
-          cityId: '507f1f77bcf86cd799439011', // Default city ID
+          cityId: selectedCity._id,
           date: itinerary[selectedDay].date,
           activityId: activityResponse._id,
           orderIndex: itinerary[selectedDay].activities.length,
           notes: activityData.notes || ''
-        });
+        }) as any;
 
-        // Update local state with the activity data
-        const updatedActivities = [...itinerary[selectedDay].activities, activityData];
+        // Update local state with the new activity
+        const newActivity = {
+          id: itineraryResponse._id, // Use itinerary item ID for deletion
+          title: activityData.title,
+          type: activityData.type,
+          time: activityData.time,
+          location: selectedCity.name,
+          duration: activityData.duration,
+          notes: activityData.notes,
+          cost: activityData.cost
+        };
+
+        const updatedActivities = [...itinerary[selectedDay].activities, newActivity];
         updateActivities(selectedDay, updatedActivities);
-        console.log('Activity saved successfully to database');
-        setShowActivityForm(false); // Close the modal after saving
+        
+        setShowActivityForm(false);
         showToast('success', 'Activity Added!', 'Activity has been added to your itinerary.');
       } catch (error) {
         console.error('Error saving activity to database:', error);
         showToast('error', 'Error', 'Failed to save activity to database');
       }
     } else {
-      console.error('Invalid selected day:', selectedDay);
-      showToast('error', 'Error', 'Failed to add activity - invalid day selected');
+      showToast('error', 'Error', 'Please select a city first');
     }
   };
 
   const removeActivity = async (activityId: string) => {
     try {
-      // Find the activity in the current day's activities
-      const activityIndex = itinerary[selectedDay].activities.findIndex(
-        activity => activity.id === activityId
-      );
+      // Delete from database using the itinerary item ID
+      await api.delete(`/api/itinerary/${activityId}`);
       
-      if (activityIndex !== -1) {
-        // Get the itinerary item from database to delete
-        const itineraryData = await api.get(`/api/itinerary/${tripId}`) as any[];
-        const dayActivities = itineraryData.filter(item => item.date === itinerary[selectedDay].date);
-        
-        if (dayActivities[activityIndex]) {
-          // Delete from database
-          await api.delete(`/api/itinerary/${dayActivities[activityIndex]._id}`);
-        }
-        
-        // Update local state
-        const updatedActivities = itinerary[selectedDay].activities.filter(
-          activity => activity.id !== activityId
-        );
-        updateActivities(selectedDay, updatedActivities);
-        showToast('success', 'Activity Removed', 'Activity has been removed from your itinerary.');
-      }
+      // Update local state
+      const updatedActivities = itinerary[selectedDay].activities.filter(
+        activity => activity.id !== activityId
+      );
+      updateActivities(selectedDay, updatedActivities);
+      showToast('success', 'Activity Removed', 'Activity has been removed from your itinerary.');
     } catch (error) {
       console.error('Error removing activity:', error);
       showToast('error', 'Error', 'Failed to remove activity');
@@ -256,9 +267,6 @@ const ItineraryBuilder: React.FC = () => {
     
     try {
       setSaving(true);
-      
-      // Since activities are now saved immediately when added,
-      // this function just confirms the save operation
       showToast('success', 'Itinerary Saved!', 'Your itinerary has been saved successfully.');
       setIsEditing(false);
     } catch (error) {
@@ -267,6 +275,23 @@ const ItineraryBuilder: React.FC = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const searchCities = async (query: string) => {
+    if (query.length < 2) return;
+    
+    try {
+      const searchResults = await api.get(`/api/cities?q=${encodeURIComponent(query)}&limit=10`) as City[];
+      setCities(searchResults);
+    } catch (error) {
+      console.error('Error searching cities:', error);
+    }
+  };
+
+  const selectCity = (city: City) => {
+    setSelectedCity(city);
+    setShowCitySelector(false);
+    setCitySearchQuery('');
   };
 
   if (loading) {
@@ -293,11 +318,6 @@ const ItineraryBuilder: React.FC = () => {
     );
   }
 
-  // Debug logging
-  console.log('Current itinerary state:', itinerary);
-  console.log('Selected day:', selectedDay);
-  console.log('Activities for selected day:', itinerary[selectedDay]?.activities);
-
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -315,6 +335,11 @@ const ItineraryBuilder: React.FC = () => {
             <p className="text-sm text-gray-500">
               {new Date(tripData.startDate).toLocaleDateString()} - {new Date(tripData.endDate).toLocaleDateString()}
             </p>
+            {selectedCity && (
+              <p className="text-sm text-blue-600 mt-1">
+                Selected City: {selectedCity.name}, {selectedCity.country}
+              </p>
+            )}
           </div>
           <div className="flex items-center space-x-4">
             {isEditing ? (
@@ -425,15 +450,29 @@ const ItineraryBuilder: React.FC = () => {
                   })}
                 </h2>
                 {isEditing && (
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={addActivity}
-                    className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Activity
-                  </motion.button>
+                  <div className="flex items-center space-x-2">
+                    {!selectedCity && (
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setShowCitySelector(true)}
+                        className="flex items-center bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors duration-200"
+                      >
+                        <MapPin className="h-4 w-4 mr-2" />
+                        Select City
+                      </motion.button>
+                    )}
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={addActivity}
+                      disabled={!selectedCity}
+                      className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Activity
+                    </motion.button>
+                  </div>
                 )}
               </div>
 
@@ -475,6 +514,11 @@ const ItineraryBuilder: React.FC = () => {
                                 {activity.notes && (
                                   <p className="text-sm text-gray-600 mt-2 italic">{activity.notes}</p>
                                 )}
+                                {activity.cost && (
+                                  <p className="text-sm text-green-600 mt-1 font-medium">
+                                    Cost: ₹{activity.cost}
+                                  </p>
+                                )}
                               </div>
                             </div>
                             
@@ -508,15 +552,30 @@ const ItineraryBuilder: React.FC = () => {
                   <h3 className="text-lg font-medium text-gray-900 mb-2">No activities planned</h3>
                   <p className="text-gray-600 mb-6">Start building your itinerary for this day</p>
                   {isEditing && (
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={addActivity}
-                      className="inline-flex items-center bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200"
-                    >
-                      <Plus className="h-5 w-5 mr-2" />
-                      Add First Activity
-                    </motion.button>
+                    <div className="space-y-2">
+                      {!selectedCity && (
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => setShowCitySelector(true)}
+                          className="inline-flex items-center bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition-colors duration-200 mr-2"
+                        >
+                          <MapPin className="h-5 w-5 mr-2" />
+                          Select City First
+                        </motion.button>
+                      )}
+                      {selectedCity && (
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={addActivity}
+                          className="inline-flex items-center bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                        >
+                          <Plus className="h-5 w-5 mr-2" />
+                          Add First Activity
+                        </motion.button>
+                      )}
+                    </div>
                   )}
                 </motion.div>
               )}
@@ -568,6 +627,66 @@ const ItineraryBuilder: React.FC = () => {
           </Link>
         </motion.div>
       </div>
+
+      {/* City Selector Modal */}
+      <AnimatePresence>
+        {showCitySelector && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-white rounded-xl p-6 w-full max-w-md max-h-[80vh] overflow-y-auto"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900">Select City</h2>
+                <button
+                  onClick={() => setShowCitySelector(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                >
+                  <Plus className="h-6 w-6 rotate-45" />
+                </button>
+              </div>
+
+              <div className="mb-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <input
+                    type="text"
+                    value={citySearchQuery}
+                    onChange={(e) => {
+                      setCitySearchQuery(e.target.value);
+                      searchCities(e.target.value);
+                    }}
+                    placeholder="Search cities..."
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {cities.map((city) => (
+                  <motion.button
+                    key={city._id}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => selectCity(city)}
+                    className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors duration-200"
+                  >
+                    <div className="font-medium text-gray-900">{city.name}</div>
+                    <div className="text-sm text-gray-600">{city.country}</div>
+                    {city.popularityScore && (
+                      <div className="text-xs text-blue-600 mt-1">
+                        Popularity: {city.popularityScore}/100
+                      </div>
+                    )}
+                  </motion.button>
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Activity Form Modal */}
       <ActivityForm

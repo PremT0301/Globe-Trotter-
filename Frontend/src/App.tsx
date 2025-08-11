@@ -15,6 +15,7 @@ import ActivitySearch from './pages/ActivitySearch';
 import TripBudget from './pages/TripBudget';
 import TripCalendar from './pages/TripCalendar';
 import SharedItinerary from './pages/SharedItinerary';
+import ExplorePage from './pages/ExplorePage';
 import UserProfile from './pages/UserProfile';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminLoginTest from './pages/AdminLoginTest';
@@ -88,6 +89,7 @@ function App() {
                     </ProtectedRoute>
                   } />
                   <Route path="/shared/:tripId" element={<SharedItinerary />} />
+        <Route path="/explore" element={<ExplorePage />} />
                   <Route path="/profile" element={
                     <ProtectedRoute>
                       <><Navbar /><UserProfile /></>

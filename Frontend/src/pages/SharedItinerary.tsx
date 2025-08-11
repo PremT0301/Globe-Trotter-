@@ -112,6 +112,23 @@ const SharedItinerary: React.FC = () => {
     }
   };
 
+  const handleExportPDF = async () => {
+    try {
+      const slug = window.location.pathname.split('/').pop();
+      const link = document.createElement('a');
+      link.href = `${process.env.REACT_APP_API_URL || 'http://localhost:4000'}/api/pdf/shared/${slug}`;
+      link.download = `${tripData?.title || 'shared_trip'}_itinerary.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      showToast('success', 'PDF Downloaded!', 'Your itinerary PDF has been downloaded');
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      showToast('error', 'Error', 'Failed to export PDF');
+    }
+  };
+
   const shareOptions = [
     { name: 'Facebook', icon: '📘', color: 'bg-blue-600' },
     { name: 'Twitter', icon: '🐦', color: 'bg-sky-500' },
@@ -182,6 +199,17 @@ const SharedItinerary: React.FC = () => {
               >
                 {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
                 {copied ? 'Copied!' : 'Copy Link'}
+              </motion.button>
+
+              {/* PDF Export */}
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleExportPDF}
+                className="flex items-center bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors duration-200"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Export PDF
               </motion.button>
 
               {/* Social Share Buttons */}

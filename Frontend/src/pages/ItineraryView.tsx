@@ -1,125 +1,133 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Clock, MapPin, Users, Share2, Download, Edit3, ChevronLeft, ChevronRight } from 'lucide-react';
+import { api } from '../lib/api';
+import { useToast } from '../context/ToastContext';
+
+interface Activity {
+  id: string;
+  title: string;
+  time: string;
+  location: string;
+  type: 'attraction' | 'restaurant' | 'hotel' | 'transport' | 'activity';
+  duration: string;
+  notes?: string;
+  cost?: number;
+}
+
+interface Day {
+  id: string;
+  date: string;
+  dayName: string;
+  activities: Activity[];
+}
 
 const ItineraryView: React.FC = () => {
   const { tripId } = useParams();
+  const { showToast } = useToast();
   const [selectedDay, setSelectedDay] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [tripData, setTripData] = useState<any>(null);
+  const [itinerary, setItinerary] = useState<Day[]>([]);
 
-  const tripData = {
-    title: 'European Adventure',
-    destination: 'Paris, Rome, Barcelona',
-    dates: 'June 15 - June 30, 2024',
-    travelers: 3,
-    image: 'https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=1200&h=400&dpr=1'
-  };
+  // Fetch trip and itinerary data
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!tripId) return;
+      
+      try {
+        setLoading(true);
+        
+        // Fetch trip data
+        const trip = await api.get(`/api/trips/${tripId}`) as any;
+        setTripData(trip);
+        
+        // Generate itinerary days based on trip dates
+        const startDate = new Date(trip.startDate);
+        const endDate = new Date(trip.endDate);
+        const days: Day[] = [];
+        
+        const currentDate = new Date(startDate);
+        let dayIndex = 1;
+        
+        while (currentDate <= endDate) {
+          days.push({
+            id: dayIndex.toString(),
+            date: currentDate.toISOString().split('T')[0],
+            dayName: `Day ${dayIndex}`,
+            activities: []
+          });
+          currentDate.setDate(currentDate.getDate() + 1);
+          dayIndex++;
+        }
+        
+        setItinerary(days);
 
-  const itinerary = [
-    {
-      id: '1',
-      date: '2024-06-15',
-      dayName: 'Day 1',
-      activities: [
-        {
-          id: '1',
-          title: 'Arrive at Charles de Gaulle Airport',
-          time: '10:00',
-          location: 'CDG Airport, Paris',
-          type: 'transport',
-          duration: '1 hour',
-          notes: 'Flight AF123 from NYC',
-          image: 'https://images.pexels.com/photos/912050/pexels-photo-912050.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&dpr=1'
-        },
-        {
-          id: '2',
-          title: 'Check-in at Hotel Le Marais',
-          time: '14:00',
-          location: '12 Rue des Archives, Paris',
-          type: 'hotel',
-          duration: '30 minutes',
-          image: 'https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&dpr=1'
-        },
-        {
-          id: '3',
-          title: 'Visit Notre-Dame Cathedral',
-          time: '16:00',
-          location: 'Île de la Cité, Paris',
-          type: 'attraction',
-          duration: '2 hours',
-          image: 'https://images.pexels.com/photos/1850619/pexels-photo-1850619.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&dpr=1'
-        },
-        {
-          id: '4',
-          title: 'Dinner at Le Comptoir du Relais',
-          time: '19:30',
-          location: '9 Carrefour de l\'Odéon, Paris',
-          type: 'restaurant',
-          duration: '2 hours',
-          image: 'https://images.pexels.com/photos/262978/pexels-photo-262978.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&dpr=1'
+        // Fetch existing itinerary data
+        try {
+          const itineraryData = await api.get(`/api/itinerary/${tripId}`) as any[];
+          console.log('Fetched itinerary data:', itineraryData);
+          
+          // Populate activities from database
+          const updatedDays = days.map(day => {
+            const dayActivities = itineraryData
+              .filter(item => {
+                const itemDate = new Date(item.date).toISOString().split('T')[0];
+                return itemDate === day.date;
+              })
+              .sort((a, b) => a.orderIndex - b.orderIndex)
+              .map(item => {
+                // If activityId exists, the activity data is in the populated activity
+                if (item.activityId) {
+                  return {
+                    id: item._id,
+                    title: item.activityId.name,
+                    type: item.activityId.type,
+                    time: '12:00', // Default time since it's not stored in Activity model
+                    location: item.cityId?.name || 'Unknown Location',
+                    duration: `${item.activityId.duration} minutes`,
+                    notes: item.notes || item.activityId.description,
+                    cost: item.activityId.cost
+                  };
+                } else {
+                  // Fallback for legacy data stored in notes
+                  try {
+                    const parsedData = JSON.parse(item.notes);
+                    return {
+                      id: item._id,
+                      ...parsedData
+                    };
+                  } catch (error) {
+                    console.error('Error parsing activity data:', error);
+                    return null;
+                  }
+                }
+              })
+              .filter(activity => activity !== null);
+            
+            return {
+              ...day,
+              activities: dayActivities
+            };
+          });
+          
+          console.log('Updated days with activities:', updatedDays);
+          setItinerary(updatedDays);
+        } catch (error) {
+          console.error('Error fetching itinerary data:', error);
+          // Continue with empty activities if fetch fails
         }
-      ]
-    },
-    {
-      id: '2',
-      date: '2024-06-16',
-      dayName: 'Day 2',
-      activities: [
-        {
-          id: '5',
-          title: 'Visit Louvre Museum',
-          time: '09:00',
-          location: 'Rue de Rivoli, Paris',
-          type: 'attraction',
-          duration: '4 hours',
-          image: 'https://images.pexels.com/photos/2675266/pexels-photo-2675266.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&dpr=1'
-        },
-        {
-          id: '6',
-          title: 'Lunch at Café de Flore',
-          time: '13:30',
-          location: '172 Boulevard Saint-Germain, Paris',
-          type: 'restaurant',
-          duration: '1.5 hours',
-          image: 'https://images.pexels.com/photos/1307698/pexels-photo-1307698.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&dpr=1'
-        },
-        {
-          id: '7',
-          title: 'Walk along Seine River',
-          time: '15:30',
-          location: 'Seine Riverbank, Paris',
-          type: 'attraction',
-          duration: '2 hours',
-          image: 'https://images.pexels.com/photos/1530259/pexels-photo-1530259.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&dpr=1'
-        }
-      ]
-    },
-    {
-      id: '3',
-      date: '2024-06-17',
-      dayName: 'Day 3',
-      activities: [
-        {
-          id: '8',
-          title: 'Visit Eiffel Tower',
-          time: '10:00',
-          location: 'Champ de Mars, Paris',
-          type: 'attraction',
-          duration: '3 hours',
-          image: 'https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&dpr=1'
-        },
-        {
-          id: '9',
-          title: 'Seine River Cruise',
-          time: '14:00',
-          location: 'Port de la Bourdonnais, Paris',
-          type: 'attraction',
-          duration: '1.5 hours',
-          image: 'https://images.pexels.com/photos/1530259/pexels-photo-1530259.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&dpr=1'
-        }
-      ]
-    }
-  ];
+      } catch (error) {
+        console.error('Error fetching trip data:', error);
+        showToast('error', 'Error', 'Failed to load trip data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [tripId, showToast]);
 
   const getActivityIcon = (type: string) => {
     switch (type) {
@@ -127,6 +135,7 @@ const ItineraryView: React.FC = () => {
       case 'restaurant': return '🍽️';
       case 'hotel': return '🏨';
       case 'transport': return '✈️';
+      case 'activity': return '🎯';
       default: return '📍';
     }
   };
@@ -143,13 +152,72 @@ const ItineraryView: React.FC = () => {
     }
   };
 
+  const handleShareTrip = async () => {
+    try {
+      const response = await api.post(`/api/shared/${tripId}`);
+      const shareUrl = response.shareUrl;
+      
+      // Copy to clipboard
+      await navigator.clipboard.writeText(shareUrl);
+      showToast('success', 'Trip Shared!', 'Share link copied to clipboard');
+    } catch (error) {
+      console.error('Error sharing trip:', error);
+      showToast('error', 'Error', 'Failed to share trip');
+    }
+  };
+
+  const handleExportPDF = async () => {
+    try {
+      // Create a link element to trigger download
+      const link = document.createElement('a');
+      link.href = `${process.env.REACT_APP_API_URL || 'http://localhost:4000'}/api/pdf/${tripId}`;
+      link.download = `${tripData?.title || 'trip'}_itinerary.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      showToast('success', 'PDF Downloaded!', 'Your itinerary PDF has been downloaded');
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      showToast('error', 'Error', 'Failed to export PDF');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading itinerary...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!tripData) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600 mb-4">Trip not found</p>
+          <Link to="/my-trips" className="text-blue-600 hover:text-blue-700">
+            Back to My Trips
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
       <div className="relative h-64 bg-gradient-to-r from-blue-600 to-purple-600">
         <div
           className="absolute inset-0 bg-cover bg-center bg-blend-overlay"
-          style={{ backgroundImage: `url(${tripData.image})` }}
+          style={{ 
+            backgroundImage: tripData.coverPhoto 
+              ? `url(${tripData.coverPhoto})` 
+              : 'url(https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=1200&h=400&dpr=1)' 
+          }}
         />
         <div className="absolute inset-0 bg-black bg-opacity-40" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
@@ -166,11 +234,11 @@ const ItineraryView: React.FC = () => {
               </div>
               <div className="flex items-center">
                 <Calendar className="h-5 w-5 mr-2" />
-                {tripData.dates}
+                {new Date(tripData.startDate).toLocaleDateString()} - {new Date(tripData.endDate).toLocaleDateString()}
               </div>
               <div className="flex items-center">
                 <Users className="h-5 w-5 mr-2" />
-                {tripData.travelers} travelers
+                {tripData.travelers || 1} travelers
               </div>
             </div>
           </motion.div>
@@ -192,11 +260,17 @@ const ItineraryView: React.FC = () => {
               <Edit3 className="h-4 w-4 mr-2" />
               Edit Itinerary
             </Link>
-            <button className="flex items-center bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors duration-200">
+            <button 
+              onClick={handleShareTrip}
+              className="flex items-center bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors duration-200"
+            >
               <Share2 className="h-4 w-4 mr-2" />
               Share Trip
             </button>
-            <button className="flex items-center bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors duration-200">
+            <button 
+              onClick={handleExportPDF}
+              className="flex items-center bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors duration-200"
+            >
               <Download className="h-4 w-4 mr-2" />
               Export PDF
             </button>
@@ -257,10 +331,10 @@ const ItineraryView: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-2xl font-bold mb-2">
-                      {itinerary[selectedDay].dayName}
+                      {itinerary[selectedDay]?.dayName || `Day ${selectedDay + 1}`}
                     </h2>
                     <p className="text-blue-100">
-                      {new Date(itinerary[selectedDay].date).toLocaleDateString('en-US', { 
+                      {itinerary[selectedDay] && new Date(itinerary[selectedDay].date).toLocaleDateString('en-US', { 
                         weekday: 'long',
                         month: 'long', 
                         day: 'numeric',
@@ -298,7 +372,7 @@ const ItineraryView: React.FC = () => {
                     transition={{ duration: 0.3 }}
                     className="space-y-6"
                   >
-                    {itinerary[selectedDay].activities.map((activity, index) => (
+                    {itinerary[selectedDay]?.activities.map((activity, index) => (
                       <motion.div
                         key={activity.id}
                         initial={{ opacity: 0, x: -20 }}
@@ -311,7 +385,7 @@ const ItineraryView: React.FC = () => {
                           <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-xl">
                             {getActivityIcon(activity.type)}
                           </div>
-                          {index < itinerary[selectedDay].activities.length - 1 && (
+                          {index < (itinerary[selectedDay]?.activities.length || 0) - 1 && (
                             <div className="w-0.5 h-16 bg-gray-200 mt-2" />
                           )}
                         </div>
@@ -336,14 +410,12 @@ const ItineraryView: React.FC = () => {
                                   {activity.notes}
                                 </p>
                               )}
+                              {activity.cost && (
+                                <p className="text-sm text-green-600 font-medium mb-3">
+                                  Cost: ₹{activity.cost}
+                                </p>
+                              )}
                             </div>
-                            {activity.image && (
-                              <img
-                                src={activity.image}
-                                alt={activity.title}
-                                className="w-24 h-16 object-cover rounded-lg ml-4"
-                              />
-                            )}
                           </div>
                         </div>
                       </motion.div>
@@ -351,7 +423,7 @@ const ItineraryView: React.FC = () => {
                   </motion.div>
                 </AnimatePresence>
 
-                {itinerary[selectedDay].activities.length === 0 && (
+                {!itinerary[selectedDay]?.activities || itinerary[selectedDay].activities.length === 0 && (
                   <div className="text-center py-12">
                     <div className="text-gray-400 mb-4">
                       <Calendar className="h-16 w-16 mx-auto" />

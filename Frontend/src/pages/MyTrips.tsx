@@ -109,6 +109,23 @@ const MyTrips: React.FC = () => {
     }
   };
 
+  const handleShareTrip = async (tripId: string) => {
+    try {
+      const response = await api.post(`/api/shared/${tripId}`);
+      const shareUrl = response.shareUrl;
+      
+      // Copy to clipboard
+      await navigator.clipboard.writeText(shareUrl);
+      showToast('success', 'Trip Shared!', 'Share link copied to clipboard');
+      
+      // Refresh trips to show shared status
+      fetchTrips();
+    } catch (error) {
+      console.error('Error sharing trip:', error);
+      showToast('error', 'Error', 'Failed to share trip');
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'ongoing': return 'bg-green-100 text-green-700';
@@ -248,7 +265,10 @@ const MyTrips: React.FC = () => {
                       Edit Trip
                     </button>
                   </Link>
-                  <button className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center">
+                  <button 
+                    onClick={() => handleShareTrip(trip.id)}
+                    className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center"
+                  >
                     <Share2 className="h-4 w-4 mr-2" />
                     Share Trip
                   </button>
