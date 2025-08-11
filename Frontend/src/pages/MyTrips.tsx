@@ -40,17 +40,17 @@ const MyTrips: React.FC = () => {
         }
         
         return {
-          id: trip._id,
-          title: trip.title,
-          destination: trip.destination,
+        id: trip._id,
+        title: trip.title,
+        destination: trip.destination,
           startDate: trip.startDate,
           endDate: trip.endDate,
-          dates: `${formatDate(trip.startDate)} - ${formatDate(trip.endDate)}`,
-          image: trip.coverPhoto || 'https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
+        dates: `${formatDate(trip.startDate)} - ${formatDate(trip.endDate)}`,
+        image: trip.coverPhoto || 'https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
           status: status,
           collaborators: 1,
-          budget: trip.budget || 0,
-          description: trip.description || '',
+        budget: trip.budget || 0,
+        description: trip.description || '',
           progress: calculateProgress(trip.startDate, trip.endDate, status)
         };
       });
@@ -142,97 +142,97 @@ const MyTrips: React.FC = () => {
   ];
 
   const TripCard = ({ trip, index }: { trip: any; index: number }) => (
-    <motion.div
-      key={trip.id}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
-      className="bg-white/90 rounded-2xl shadow-lg border border-white/20 overflow-hidden hover:shadow-xl transition-all duration-300"
-      whileHover={{ y: -5, scale: 1.02 }}
-    >
-      <div className="relative h-48">
-        <img
-          src={trip.image}
-          alt={trip.title}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-        <div className="absolute top-4 right-4">
-          <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(trip.status)} flex items-center`}>
-            {getStatusIcon(trip.status)}
-            <span className="ml-1">{trip.status}</span>
-          </span>
-        </div>
-        <div className="absolute bottom-4 left-4 right-4">
-          <h3 className="text-xl font-bold text-white mb-1">{trip.title}</h3>
-          <p className="text-white/90 text-sm">{trip.destination}</p>
-        </div>
-      </div>
-      
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center text-sm text-gray-600">
-            <Calendar className="h-4 w-4 mr-1" />
-            {trip.dates}
-          </div>
-          <div className="flex items-center text-sm text-gray-600">
-            <Users className="h-4 w-4 mr-1" />
-            {trip.collaborators}
-          </div>
-        </div>
-        
-        <p className="text-gray-600 mb-4 line-clamp-2">{trip.description}</p>
-        
-        <div className="flex items-center justify-between mb-4">
-          <div className="text-lg font-bold text-gray-900">₹{trip.budget.toLocaleString()}</div>
-          <div className="text-sm text-gray-600">Budget</div>
-        </div>
-        
-        <div className="mb-4">
-          <div className="flex items-center justify-between text-sm mb-1">
-            <span className="text-gray-600">Progress</span>
-            <span className="text-gray-900 font-medium">{trip.progress}%</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
             <motion.div
-              className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full"
-              initial={{ width: 0 }}
-              animate={{ width: `${trip.progress}%` }}
-              transition={{ duration: 1, delay: 1 + index * 0.1 }}
-            />
-          </div>
-        </div>
-        
-        <div className="flex items-center justify-between">
-          <Link to={`/itinerary/${trip.id}`}>
-            <motion.button
-              className="text-blue-600 hover:text-blue-700 font-medium flex items-center"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              key={trip.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: index * 0.1 }}
+              className="bg-white/90 rounded-2xl shadow-lg border border-white/20 overflow-hidden hover:shadow-xl transition-all duration-300"
+              whileHover={{ y: -5, scale: 1.02 }}
             >
-              View Details
-              <ArrowRight className="h-4 w-4 ml-1" />
-            </motion.button>
-          </Link>
-          
-          <div className="relative">
-            <motion.button
-              onClick={() => setShowDropdown(showDropdown === trip.id ? null : trip.id)}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-            >
-              <MoreVertical className="h-5 w-5 text-gray-600" />
-            </motion.button>
-            
-            <AnimatePresence>
-              {showDropdown === trip.id && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8, y: -10 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.8, y: -10 }}
-                  className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-10"
-                >
+              <div className="relative h-48">
+                <img
+                  src={trip.image}
+                  alt={trip.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                <div className="absolute top-4 right-4">
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(trip.status)} flex items-center`}>
+                    {getStatusIcon(trip.status)}
+                    <span className="ml-1">{trip.status}</span>
+                  </span>
+                </div>
+                <div className="absolute bottom-4 left-4 right-4">
+                  <h3 className="text-xl font-bold text-white mb-1">{trip.title}</h3>
+                  <p className="text-white/90 text-sm">{trip.destination}</p>
+                </div>
+              </div>
+              
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center text-sm text-gray-600">
+                    <Calendar className="h-4 w-4 mr-1" />
+                    {trip.dates}
+                  </div>
+                  <div className="flex items-center text-sm text-gray-600">
+                    <Users className="h-4 w-4 mr-1" />
+                    {trip.collaborators}
+                  </div>
+                </div>
+                
+                <p className="text-gray-600 mb-4 line-clamp-2">{trip.description}</p>
+                
+                <div className="flex items-center justify-between mb-4">
+          <div className="text-lg font-bold text-gray-900">₹{trip.budget.toLocaleString()}</div>
+                  <div className="text-sm text-gray-600">Budget</div>
+                </div>
+                
+                <div className="mb-4">
+                  <div className="flex items-center justify-between text-sm mb-1">
+                    <span className="text-gray-600">Progress</span>
+                    <span className="text-gray-900 font-medium">{trip.progress}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <motion.div
+                      className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${trip.progress}%` }}
+                      transition={{ duration: 1, delay: 1 + index * 0.1 }}
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <Link to={`/itinerary/${trip.id}`}>
+                    <motion.button
+                      className="text-blue-600 hover:text-blue-700 font-medium flex items-center"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      View Details
+                      <ArrowRight className="h-4 w-4 ml-1" />
+                    </motion.button>
+                  </Link>
+                  
+                  <div className="relative">
+                    <motion.button
+                      onClick={() => setShowDropdown(showDropdown === trip.id ? null : trip.id)}
+                      className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <MoreVertical className="h-5 w-5 text-gray-600" />
+                    </motion.button>
+                    
+                    <AnimatePresence>
+                      {showDropdown === trip.id && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.8, y: -10 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.8, y: -10 }}
+                          className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-10"
+                        >
                   {trip.status !== 'completed' && (
                     <button 
                       onClick={() => handleMarkAsCompleted(trip.id)}
@@ -243,27 +243,27 @@ const MyTrips: React.FC = () => {
                     </button>
                   )}
                   <Link to={`/edit-trip/${trip.id}`}>
-                    <button className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center">
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit Trip
-                    </button>
+                          <button className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center">
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit Trip
+                          </button>
                   </Link>
-                  <button className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center">
-                    <Share2 className="h-4 w-4 mr-2" />
-                    Share Trip
-                  </button>
+                          <button className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center">
+                            <Share2 className="h-4 w-4 mr-2" />
+                            Share Trip
+                          </button>
                   <button 
                     onClick={() => handleDeleteTrip(trip.id)}
                     className="w-full px-4 py-2 text-left hover:bg-red-50 text-red-600 flex items-center"
                   >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete Trip
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete Trip
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </div>
       </div>
     </motion.div>
   );

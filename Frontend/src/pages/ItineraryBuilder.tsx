@@ -165,7 +165,7 @@ const ItineraryBuilder: React.FC = () => {
     setItinerary(prev => {
       console.log('Previous itinerary state:', prev);
       const updated = prev.map((day, index) => 
-        index === dayIndex ? { ...day, activities: newActivities } : day
+      index === dayIndex ? { ...day, activities: newActivities } : day
       );
       console.log('Updated itinerary:', updated);
       console.log('Activities for selected day after update:', updated[dayIndex]?.activities);
@@ -207,7 +207,7 @@ const ItineraryBuilder: React.FC = () => {
 
         // Update local state with the activity data
         const updatedActivities = [...itinerary[selectedDay].activities, activityData];
-        updateActivities(selectedDay, updatedActivities);
+    updateActivities(selectedDay, updatedActivities);
         console.log('Activity saved successfully to database');
         setShowActivityForm(false); // Close the modal after saving
         showToast('success', 'Activity Added!', 'Activity has been added to your itinerary.');
@@ -239,10 +239,10 @@ const ItineraryBuilder: React.FC = () => {
         }
         
         // Update local state
-        const updatedActivities = itinerary[selectedDay].activities.filter(
-          activity => activity.id !== activityId
-        );
-        updateActivities(selectedDay, updatedActivities);
+    const updatedActivities = itinerary[selectedDay].activities.filter(
+      activity => activity.id !== activityId
+    );
+    updateActivities(selectedDay, updatedActivities);
         showToast('success', 'Activity Removed', 'Activity has been removed from your itinerary.');
       }
     } catch (error) {

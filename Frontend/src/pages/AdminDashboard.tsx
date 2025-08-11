@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+
 import { Users, MapPin, TrendingUp, DollarSign, Calendar, Search, Filter, MoreVertical, Edit, Trash2, Eye, Shield, Activity, BarChart3, PieChart, LineChart } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell, LineChart as RechartsLineChart, Line } from 'recharts';
 import { api } from '../lib/api';
@@ -29,15 +30,22 @@ interface Trip {
 }
 
 interface AdminStats {
-  overview: {
-    totalUsers: number;
-    totalTrips: number;
-    activeTrips: number;
-    completedTrips: number;
+  totalUsers: number;
+  totalTrips: number;
+  activeTrips: number;
+  completedTrips: number;
+  totalActivities: number;
+  totalBudget: number;
+  averageBudget: number;
+  monthlyGrowth: {
+    users: number;
+    trips: number;
+    activities: number;
   };
+  topDestinations: Array<{ destination: string; count: number }>;
+  popularActivities: Array<{ type: string; count: number }>;
   userGrowth: Array<{ _id: { year: number; month: number }; count: number }>;
   tripGrowth: Array<{ _id: { year: number; month: number }; count: number }>;
-  topDestinations: Array<{ _id: string; count: number }>;
 }
 
 const AdminDashboard: React.FC = () => {
@@ -47,6 +55,7 @@ const AdminDashboard: React.FC = () => {
   const [sortOrder, setSortOrder] = useState('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+  const [isStatsLoading, setIsStatsLoading] = useState(true);
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [trips, setTrips] = useState<Trip[]>([]);
@@ -60,6 +69,8 @@ const AdminDashboard: React.FC = () => {
   });
   const { showToast } = useToast();
 
+
+
   const tabs = [
     { id: 'overview', name: 'Overview', icon: <BarChart3 className="h-4 w-4" /> },
     { id: 'users', name: 'Users', icon: <Users className="h-4 w-4" /> },
@@ -70,11 +81,16 @@ const AdminDashboard: React.FC = () => {
   // Fetch admin statistics
   const fetchStats = async () => {
     try {
+      setIsStatsLoading(true);
+      console.log('🔍 Fetching admin stats...');
       const response = await api.get<AdminStats>('/api/admin/stats');
+      console.log('✅ Admin stats received:', response);
       setStats(response);
     } catch (error) {
-      console.error('Failed to fetch stats:', error);
+      console.error('❌ Failed to fetch stats:', error);
       showToast('error', 'Error', 'Failed to fetch admin statistics');
+    } finally {
+      setIsStatsLoading(false);
     }
   };
 
@@ -82,11 +98,13 @@ const AdminDashboard: React.FC = () => {
   const fetchUsers = async () => {
     try {
       setIsLoading(true);
-      const response = await api.get(`/api/admin/users?page=${currentPage}&limit=10&search=${searchTerm}&sortBy=${sortBy}&sortOrder=${sortOrder}`);
+      console.log('🔍 Fetching users...');
+      const response = await api.get(`/api/admin/users?page=${currentPage}&limit=10&search=${searchTerm}&sortBy=${sortBy}&sortOrder=${sortOrder}`) as any;
+      console.log('✅ Users received:', response);
       setUsers(response.users);
       setPagination(response.pagination);
     } catch (error) {
-      console.error('Failed to fetch users:', error);
+      console.error('❌ Failed to fetch users:', error);
       showToast('error', 'Error', 'Failed to fetch users');
     } finally {
       setIsLoading(false);
@@ -97,11 +115,13 @@ const AdminDashboard: React.FC = () => {
   const fetchTrips = async () => {
     try {
       setIsLoading(true);
-      const response = await api.get(`/api/admin/trips?page=${currentPage}&limit=10&search=${searchTerm}&sortBy=${sortBy}&sortOrder=${sortOrder}`);
+      console.log('🔍 Fetching trips...');
+      const response = await api.get(`/api/admin/trips?page=${currentPage}&limit=10&search=${searchTerm}&sortBy=${sortBy}&sortOrder=${sortOrder}`) as any;
+      console.log('✅ Trips received:', response);
       setTrips(response.trips);
       setPagination(response.pagination);
     } catch (error) {
-      console.error('Failed to fetch trips:', error);
+      console.error('❌ Failed to fetch trips:', error);
       showToast('error', 'Error', 'Failed to fetch trips');
     } finally {
       setIsLoading(false);
@@ -111,7 +131,7 @@ const AdminDashboard: React.FC = () => {
   // Update user role
   const updateUserRole = async (userId: string, role: 'user' | 'admin') => {
     try {
-      await api.patch(`/api/admin/users/${userId}/role`, { role });
+      await api.put(`/api/admin/users/${userId}/role`, { role });
       showToast('success', 'Success', 'User role updated successfully');
       fetchUsers();
     } catch (error) {
@@ -139,7 +159,7 @@ const AdminDashboard: React.FC = () => {
   // Update trip status
   const updateTripStatus = async (tripId: string, status: string) => {
     try {
-      await api.patch(`/api/admin/trips/${tripId}/status`, { status });
+      await api.put(`/api/admin/trips/${tripId}/status`, { status });
       showToast('success', 'Success', 'Trip status updated successfully');
       fetchTrips();
     } catch (error) {
@@ -200,7 +220,7 @@ const AdminDashboard: React.FC = () => {
     return new Date(dateString).toLocaleDateString();
   };
 
-  if (isLoading && activeTab === 'overview') {
+  if (isStatsLoading && activeTab === 'overview') {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <LoadingSpinner size="lg" />
@@ -254,19 +274,25 @@ const AdminDashboard: React.FC = () => {
         </div>
 
         {/* Overview Tab */}
-        {activeTab === 'overview' && stats && (
+        {activeTab === 'overview' && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="space-y-8"
           >
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {isStatsLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <LoadingSpinner size="lg" />
+              </div>
+            ) : stats ? (
+              <>
+                {/* Stats Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Total Users</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.overview.totalUsers.toLocaleString()}</p>
+                                         <p className="text-2xl font-bold text-gray-900">{(stats?.totalUsers || 0).toLocaleString()}</p>
                   </div>
                   <div className="p-3 bg-blue-100 rounded-lg">
                     <Users className="h-6 w-6 text-blue-600" />
@@ -278,7 +304,7 @@ const AdminDashboard: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Total Trips</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.overview.totalTrips.toLocaleString()}</p>
+                                         <p className="text-2xl font-bold text-gray-900">{(stats?.totalTrips || 0).toLocaleString()}</p>
                   </div>
                   <div className="p-3 bg-green-100 rounded-lg">
                     <MapPin className="h-6 w-6 text-green-600" />
@@ -290,7 +316,7 @@ const AdminDashboard: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Active Trips</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.overview.activeTrips.toLocaleString()}</p>
+                                         <p className="text-2xl font-bold text-gray-900">{(stats?.activeTrips || 0).toLocaleString()}</p>
                   </div>
                   <div className="p-3 bg-orange-100 rounded-lg">
                     <Activity className="h-6 w-6 text-orange-600" />
@@ -302,7 +328,7 @@ const AdminDashboard: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">Completed Trips</p>
-                    <p className="text-2xl font-bold text-gray-900">{stats.overview.completedTrips.toLocaleString()}</p>
+                                         <p className="text-2xl font-bold text-gray-900">{(stats?.completedTrips || 0).toLocaleString()}</p>
                   </div>
                   <div className="p-3 bg-purple-100 rounded-lg">
                     <Calendar className="h-6 w-6 text-purple-600" />
@@ -316,11 +342,11 @@ const AdminDashboard: React.FC = () => {
               {/* User Growth Chart */}
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">User Growth</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={stats.userGrowth.map(item => ({
-                    month: `${item._id.year}-${item._id.month}`,
-                    users: item.count
-                  }))}>
+                                 <ResponsiveContainer width="100%" height={300}>
+                   <BarChart data={(stats?.userGrowth || []).map(item => ({
+                     month: `${item._id.year}-${item._id.month}`,
+                     users: item.count
+                   }))}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="month" />
                     <YAxis />
@@ -334,20 +360,26 @@ const AdminDashboard: React.FC = () => {
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Destinations</h3>
                 <div className="space-y-3">
-                  {stats.topDestinations.slice(0, 5).map((dest, index) => (
-                    <div key={dest._id} className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                          <span className="text-sm font-medium text-purple-600">{index + 1}</span>
-                        </div>
-                        <span className="font-medium text-gray-900">{dest._id}</span>
-                      </div>
-                      <span className="text-sm text-gray-600">{dest.count} trips</span>
-                    </div>
-                  ))}
+                                     {(stats?.topDestinations || []).slice(0, 5).map((dest, index) => (
+                     <div key={dest.destination} className="flex items-center justify-between">
+                       <div className="flex items-center space-x-3">
+                         <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                           <span className="text-sm font-medium text-purple-600">{index + 1}</span>
+                         </div>
+                         <span className="font-medium text-gray-900">{dest.destination}</span>
+                       </div>
+                       <span className="text-sm text-gray-600">{dest.count} trips</span>
+                     </div>
+                   ))}
                 </div>
               </div>
             </div>
+              </>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-gray-500">Failed to load statistics</p>
+              </div>
+            )}
           </motion.div>
         )}
 

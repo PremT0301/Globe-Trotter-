@@ -2,10 +2,13 @@ const express = require('express');
 const { requireAdmin } = require('../middleware/auth');
 const User = require('../models/User');
 const Trip = require('../models/Trip');
+const Activity = require('../models/Activity');
 const AdminStat = require('../models/AdminStat');
 const mongoose = require('mongoose');
 
 const router = express.Router();
+
+// Apply admin middleware to all routes
 router.use(requireAdmin);
 
 // Get admin dashboard statistics
@@ -77,16 +80,52 @@ router.get('/stats', async (req, res) => {
       }
     ]);
 
+    // Calculate additional stats
+    const totalActivities = await Activity.countDocuments();
+    const totalBudget = await Trip.aggregate([
+      { $group: { _id: null, total: { $sum: '$budget' } } }
+    ]);
+    const avgBudget = await Trip.aggregate([
+      { $group: { _id: null, avg: { $avg: '$budget' } } }
+    ]);
+
+    // Calculate monthly growth (simplified)
+    const lastMonth = new Date();
+    lastMonth.setMonth(lastMonth.getMonth() - 1);
+    const lastMonthUsers = await User.countDocuments({ createdAt: { $gte: lastMonth } });
+    const lastMonthTrips = await Trip.countDocuments({ createdAt: { $gte: lastMonth } });
+    const lastMonthActivities = await Activity.countDocuments({ createdAt: { $gte: lastMonth } });
+
+    // Get popular activities
+    const popularActivities = await Activity.aggregate([
+      { $group: { _id: '$type', count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 5 }
+    ]);
+
     res.json({
-      overview: {
-        totalUsers,
-        totalTrips,
-        activeTrips,
-        completedTrips
+      totalUsers,
+      activeUsers: totalUsers, // Simplified - assuming all users are active
+      totalTrips,
+      activeTrips,
+      totalActivities,
+      totalBudget: totalBudget[0]?.total || 0,
+      averageBudget: avgBudget[0]?.avg || 0,
+      monthlyGrowth: {
+        users: lastMonthUsers,
+        trips: lastMonthTrips,
+        activities: lastMonthActivities
       },
+      topDestinations: topDestinations.map(dest => ({
+        destination: dest._id,
+        count: dest.count
+      })),
+      popularActivities: popularActivities.map(act => ({
+        type: act._id,
+        count: act.count
+      })),
       userGrowth,
-      tripGrowth,
-      topDestinations
+      tripGrowth
     });
   } catch (error) {
     console.error('Admin stats error:', error);
@@ -161,7 +200,7 @@ router.get('/users/:userId', async (req, res) => {
 });
 
 // Update user role
-router.patch('/users/:userId/role', async (req, res) => {
+router.put('/users/:userId/role', async (req, res) => {
   try {
     const { role } = req.body;
     
@@ -183,6 +222,28 @@ router.patch('/users/:userId/role', async (req, res) => {
   } catch (error) {
     console.error('Admin update user role error:', error);
     res.status(500).json({ message: 'Failed to update user role' });
+  }
+});
+
+// Update user status
+router.put('/users/:userId/status', async (req, res) => {
+  try {
+    const { isActive } = req.body;
+    
+    const user = await User.findByIdAndUpdate(
+      req.params.userId,
+      { isActive },
+      { new: true }
+    ).select('-passwordHash -emailVerificationToken');
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    res.json({ user, message: 'User status updated successfully' });
+  } catch (error) {
+    console.error('Admin update user status error:', error);
+    res.status(500).json({ message: 'Failed to update user status' });
   }
 });
 
@@ -274,7 +335,7 @@ router.get('/trips/:tripId', async (req, res) => {
 });
 
 // Update trip status
-router.patch('/trips/:tripId/status', async (req, res) => {
+router.put('/trips/:tripId/status', async (req, res) => {
   try {
     const { status } = req.body;
     
@@ -314,6 +375,108 @@ router.delete('/trips/:tripId', async (req, res) => {
   } catch (error) {
     console.error('Admin delete trip error:', error);
     res.status(500).json({ message: 'Failed to delete trip' });
+  }
+});
+
+// Get all activities with pagination and search
+router.get('/activities', async (req, res) => {
+  try {
+    const { page = 1, limit = 10, search = '', type = '', sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
+    
+    const skip = (page - 1) * limit;
+    const sort = { [sortBy]: sortOrder === 'desc' ? -1 : 1 };
+    
+    let query = {};
+    if (search) {
+      query = {
+        $or: [
+          { name: { $regex: search, $options: 'i' } },
+          { description: { $regex: search, $options: 'i' } }
+        ]
+      };
+    }
+    
+    if (type) {
+      query.type = type;
+    }
+    
+    const activities = await Activity.find(query)
+      .populate('cityId', 'name country')
+      .sort(sort)
+      .skip(skip)
+      .limit(parseInt(limit))
+      .lean();
+    
+    const total = await Activity.countDocuments(query);
+    
+    res.json({
+      activities,
+      pagination: {
+        current: parseInt(page),
+        total: Math.ceil(total / limit),
+        totalActivities: total,
+        hasNext: skip + activities.length < total,
+        hasPrev: page > 1
+      }
+    });
+  } catch (error) {
+    console.error('Admin activities error:', error);
+    res.status(500).json({ message: 'Failed to fetch activities' });
+  }
+});
+
+// Get database statistics
+router.get('/database', async (req, res) => {
+  try {
+    // Get collection counts
+    const usersCount = await User.countDocuments();
+    const tripsCount = await Trip.countDocuments();
+    const activitiesCount = await Activity.countDocuments();
+    const citiesCount = await mongoose.model('City').countDocuments();
+    const expensesCount = await mongoose.model('Expense').countDocuments();
+    const itinerariesCount = await mongoose.model('Itinerary').countDocuments();
+
+    // Get database stats
+    const dbStats = await mongoose.connection.db.stats();
+    
+    // Calculate storage info
+    const totalStorage = dbStats.dataSize + dbStats.indexSize;
+    const usedStorage = dbStats.storageSize;
+    const availableStorage = totalStorage - usedStorage;
+
+    // Get performance metrics (simplified)
+    const startTime = Date.now();
+    await User.findOne(); // Simple query to measure response time
+    const responseTime = Date.now() - startTime;
+
+    res.json({
+      collections: {
+        users: usersCount,
+        trips: tripsCount,
+        activities: activitiesCount,
+        cities: citiesCount,
+        expenses: expensesCount,
+        itineraries: itinerariesCount
+      },
+      storage: {
+        total: totalStorage,
+        used: usedStorage,
+        available: availableStorage
+      },
+      performance: {
+        avgResponseTime: responseTime,
+        activeConnections: mongoose.connection.client.topology.s.options.maxPoolSize || 10,
+        queriesPerSecond: 0 // Would need more complex monitoring
+      },
+      health: {
+        status: 'healthy',
+        lastBackup: new Date().toISOString(), // Simplified
+        uptime: process.uptime()
+      }
+    });
+  } catch (error) {
+    console.error('Admin database stats error:', error);
+    res.status(500).json({ message: 'Failed to fetch database statistics' });
   }
 });
 

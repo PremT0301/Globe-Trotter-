@@ -1,41 +1,26 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import LoadingSpinner from './LoadingSpinner';
 
 interface AdminRouteProps {
   children: React.ReactNode;
 }
 
 const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
-  const { user, isLoading } = useAuth();
+  const { user, isAuthenticated } = useAuth();
+  const location = useLocation();
 
-  // Debug logging
-  console.log('🔐 AdminRoute Check:', {
-    isLoading,
-    user: user ? { id: user.id, email: user.email, role: user.role } : null,
-    isAdmin: user?.role === 'admin'
-  });
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <LoadingSpinner size="lg" />
-      </div>
-    );
+  // If not authenticated, redirect to login
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (!user) {
-    console.log('🚫 AdminRoute: No user, redirecting to login');
-    return <Navigate to="/login" replace />;
-  }
-
-  if (user.role !== 'admin') {
-    console.log('🚫 AdminRoute: User is not admin, redirecting to dashboard');
+  // If authenticated but not admin, redirect to dashboard
+  if (user?.role !== 'admin') {
     return <Navigate to="/dashboard" replace />;
   }
 
-  console.log('✅ AdminRoute: User is admin, allowing access');
+  // If admin, render the protected content
   return <>{children}</>;
 };
 

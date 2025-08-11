@@ -53,14 +53,15 @@ const Dashboard: React.FC = () => {
       setLoading(true);
       setError(null);
       
-      const response = await api.get('/dashboard') as any;
-      const data = response.data;
+      console.log('🔍 Fetching dashboard data...');
+      const response = await api.get('/api/dashboard') as any;
+      console.log('✅ Dashboard response:', response);
       
-      setStats(data.stats);
-      setRecentTrips(data.recentTrips);
-      setPopularDestinations(data.popularDestinations);
+      setStats(response.stats);
+      setRecentTrips(response.recentTrips);
+      setPopularDestinations(response.popularDestinations);
     } catch (err) {
-      console.error('Failed to fetch dashboard data:', err);
+      console.error('❌ Failed to fetch dashboard data:', err);
       setError('Failed to load dashboard data');
     } finally {
       setLoading(false);
@@ -70,7 +71,7 @@ const Dashboard: React.FC = () => {
   const statsCards = [
     { 
       label: 'Total Trips', 
-      value: stats.totalTrips.toString(), 
+      value: (stats?.totalTrips || 0).toString(), 
       icon: <MapPin className="h-6 w-6" />, 
       color: 'from-blue-500 to-indigo-500',
       bgColor: 'bg-blue-50',
@@ -78,7 +79,7 @@ const Dashboard: React.FC = () => {
     },
     { 
       label: 'Countries Visited', 
-      value: stats.countriesVisited.toString(), 
+      value: (stats?.countriesVisited || 0).toString(), 
       icon: <TrendingUp className="h-6 w-6" />, 
       color: 'from-green-500 to-teal-500',
       bgColor: 'bg-green-50',
@@ -86,7 +87,7 @@ const Dashboard: React.FC = () => {
     },
     { 
       label: 'Upcoming Trips', 
-      value: stats.upcomingTrips.toString(), 
+      value: (stats?.upcomingTrips || 0).toString(), 
       icon: <Calendar className="h-6 w-6" />, 
       color: 'from-purple-500 to-pink-500',
       bgColor: 'bg-purple-50',
@@ -94,7 +95,7 @@ const Dashboard: React.FC = () => {
     },
     { 
       label: 'Travel Days', 
-      value: '0', 
+      value: (stats?.travelDays || 0).toString(), 
       icon: <Clock className="h-6 w-6" />, 
       color: 'from-orange-500 to-amber-500',
       bgColor: 'bg-orange-50',
@@ -145,6 +146,35 @@ const Dashboard: React.FC = () => {
     { icon: <Zap className="h-4 w-4" />, color: "text-blue-400", delay: 4 },
     { icon: <Target className="h-4 w-4" />, color: "text-green-400", delay: 6 }
   ];
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button 
+            onClick={fetchDashboardData}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden">
@@ -245,8 +275,8 @@ const Dashboard: React.FC = () => {
               View All
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {recentTrips.map((trip, index) => (
+                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+             {(recentTrips || []).map((trip, index) => (
               <motion.div
                 key={trip.id}
                 initial={{ opacity: 0, y: 20 }}

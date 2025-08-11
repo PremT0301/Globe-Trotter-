@@ -17,9 +17,14 @@ import TripCalendar from './pages/TripCalendar';
 import SharedItinerary from './pages/SharedItinerary';
 import UserProfile from './pages/UserProfile';
 import AdminDashboard from './pages/AdminDashboard';
-import AdminLoginTest from './pages/AdminLoginTest';
+import AdminUsers from './pages/AdminUsers';
+import AdminTrips from './pages/AdminTrips';
+import AdminActivities from './pages/AdminActivities';
+import AdminStats from './pages/AdminStats';
+import AdminDatabase from './pages/AdminDatabase';
 import NotFound from './pages/NotFound';
 import Navbar from './components/Navbar';
+import AdminNavbar from './components/AdminNavbar';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -93,14 +98,37 @@ function App() {
                       <><Navbar /><UserProfile /></>
                     </ProtectedRoute>
                   } />
-                                     <Route path="/admin" element={
-                     <AdminRoute>
-                       <><Navbar /><AdminDashboard /></>
-                     </AdminRoute>
-                   } />
-                   <Route path="/admin-test" element={<AdminLoginTest />} />
-                   <Route path="/admin-direct" element={<><Navbar /><AdminDashboard /></>} />
-                   <Route path="/admin-now" element={<AdminDashboard />} />
+                  {/* Admin Routes */}
+                  <Route path="/admin" element={
+                    <AdminRoute>
+                      <><AdminNavbar /><AdminDashboard /></>
+                    </AdminRoute>
+                  } />
+                  <Route path="/admin/users" element={
+                    <AdminRoute>
+                      <><AdminNavbar /><AdminUsers /></>
+                    </AdminRoute>
+                  } />
+                  <Route path="/admin/trips" element={
+                    <AdminRoute>
+                      <><AdminNavbar /><AdminTrips /></>
+                    </AdminRoute>
+                  } />
+                  <Route path="/admin/activities" element={
+                    <AdminRoute>
+                      <><AdminNavbar /><AdminActivities /></>
+                    </AdminRoute>
+                  } />
+                  <Route path="/admin/stats" element={
+                    <AdminRoute>
+                      <><AdminNavbar /><AdminStats /></>
+                    </AdminRoute>
+                  } />
+                  <Route path="/admin/database" element={
+                    <AdminRoute>
+                      <><AdminNavbar /><AdminDatabase /></>
+                    </AdminRoute>
+                  } />
 
                   {/* 404 Route */}
                   <Route path="*" element={<NotFound />} />

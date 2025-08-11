@@ -85,8 +85,8 @@ router.get('/recent-trips', async (req, res) => {
 
       return {
         id: trip._id,
-        title: trip.tripName,
-        destination: trip.description || 'Multiple destinations',
+        title: trip.title,
+        destination: trip.destination || 'Multiple destinations',
         dates: `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`,
         image: trip.coverPhoto || 'https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
         status,
@@ -184,8 +184,8 @@ router.get('/', async (req, res) => {
 
         return {
           id: trip._id,
-          title: trip.tripName,
-          destination: trip.description || 'Multiple destinations',
+          title: trip.title,
+          destination: trip.destination || 'Multiple destinations',
           dates: `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`,
           image: trip.coverPhoto || 'https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
           status,

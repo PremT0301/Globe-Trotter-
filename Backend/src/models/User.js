@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema(
     emailVerificationToken: { type: String, unique: true, sparse: true },
     emailVerificationExpires: { type: Date },
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
+    isActive: { type: Boolean, default: true },
   },
   { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } }
 );

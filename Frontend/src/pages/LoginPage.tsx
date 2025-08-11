@@ -44,10 +44,16 @@ const LoginPage: React.FC = () => {
     console.log('🚀 Login form submitted with:', { email, password: '***' });
     setIsLoading(true);
     try {
-      await login(email, password);
-      console.log('✅ Login completed successfully');
-      showToast('success', 'Welcome back!', 'Successfully logged in.');
-      navigate('/dashboard');
+      const userRole = await login(email, password);
+      console.log('✅ Login completed successfully, user role:', userRole);
+      
+      if (userRole === 'admin') {
+        showToast('success', 'Welcome Admin!', 'Successfully logged in to admin panel.');
+        navigate('/admin');
+      } else {
+        showToast('success', 'Welcome back!', 'Successfully logged in.');
+        navigate('/dashboard');
+      }
     } catch (error) {
       console.log('❌ Login error in form:', error);
       setErrors({ email: 'Invalid email or password' });
@@ -452,7 +458,8 @@ const LoginPage: React.FC = () => {
             >
             <p className="text-sm text-gray-600">
                 <span className="font-semibold text-blue-600">Demo Access:</span><br />
-              admin@globetrotter.com / password
+              <span className="font-medium">Admin:</span> admin@globetrotter.com / admin123456<br />
+              <span className="font-medium">User:</span> user@example.com / password
             </p>
             </motion.div>
         </motion.form>

@@ -24,7 +24,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<'user' | 'admin'>;
   loginWithOTP: (email: string, otp: string) => Promise<void>;
   generateOTP: (email: string) => Promise<void>;
   signup: (name: string, email: string, password: string) => Promise<void>;
@@ -77,6 +77,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.log('✅ Login successful:', res);
       setUser(res.user);
       persist(res.user, res.token);
+      
+      // Return user role for redirection logic
+      return res.user.role || 'user';
     } catch (error) {
       console.log('❌ Login failed:', error);
       throw error;
