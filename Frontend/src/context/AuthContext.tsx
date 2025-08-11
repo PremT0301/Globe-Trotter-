@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { api } from '../lib/api';
 import { useToast } from './ToastContext';
 
 interface User {
-  id: string;
+  id: number;
   name: string;
   email: string;
   avatar?: string;
@@ -38,34 +39,45 @@ export const useAuth = () => {
 };
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(() => {
+    try {
+      const stored = localStorage.getItem('user');
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const persist = (u: User | null, token?: string) => {
+    if (u) {
+      localStorage.setItem('user', JSON.stringify(u));
+    } else {
+      localStorage.removeItem('user');
+    }
+    if (token) {
+      localStorage.setItem('token', token);
+    }
+  };
   const [user, setUser] = useState<User | null>(null);
   const { showToast } = useToast();
 
   const login = async (email: string, password: string) => {
-    // Mock login - in real app, this would call an API
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setUser({
-      id: '1',
-      name: 'John Doe',
-      email,
-      avatar: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=1',
-      isAdmin: email === 'admin@globetrotter.com'
-    });
+    const res = await api.post<{ token: string; user: User }>('/api/auth/login', { email, password });
+    setUser(res.user);
+    persist(res.user, res.token);
   };
 
   const signup = async (name: string, email: string, password: string) => {
-    // Mock signup - in real app, this would call an API
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setUser({
-      id: '1',
-      name,
-      email,
-      avatar: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=1'
-    });
+    await api.post('/api/auth/signup', { name, email, password });
+    await login(email, password);
   };
 
   const logout = () => {
     setUser(null);
+    try {
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+    } catch {}
     showToast('info', 'Logged out', 'You have been successfully logged out.');
   };
 
