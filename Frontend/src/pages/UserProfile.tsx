@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { User, Camera, Save, Lock, Mail, Phone, MapPin, Calendar, Globe, Heart, Plane, Zap, Shield, Bell, Eye, EyeOff } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { User, Camera, Save, Lock, Mail, Phone, MapPin, Calendar, Globe, Heart, Plane, Zap, Shield, Bell, Eye, EyeOff, Star, Target, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -115,164 +115,437 @@ const UserProfile: React.FC = () => {
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // In a real app, this would upload the file to a server
-      console.log('Avatar file:', file);
-      showToast('success', 'Avatar Updated', 'Your profile picture has been updated.');
+      // Mock avatar upload - in real app, this would upload to a server
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const avatarUrl = event.target?.result as string;
+        if (updateUser) {
+          updateUser({
+            ...user!,
+            avatar: avatarUrl
+          });
+        }
+        showToast('success', 'Avatar Updated', 'Your profile picture has been updated.');
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const stats = [
-    { label: 'Trips Created', value: 12, icon: <Plane className="h-6 w-6" />, color: 'from-primary-500 to-primary-600' },
-    { label: 'Destinations Visited', value: 8, icon: <Globe className="h-6 w-6" />, color: 'from-secondary-500 to-secondary-600' },
-    { label: 'Reviews Written', value: 24, icon: <Heart className="h-6 w-6" />, color: 'from-accent-500 to-accent-600' },
-    { label: 'Days Traveling', value: 156, icon: <Calendar className="h-6 w-6" />, color: 'from-success-500 to-success-600' }
+  const travelStats = [
+    { label: 'Countries Visited', value: '12', icon: <Globe className="h-5 w-5" />, color: 'from-blue-500 to-indigo-500' },
+    { label: 'Trips Completed', value: '8', icon: <Plane className="h-5 w-5" />, color: 'from-green-500 to-teal-500' },
+    { label: 'Days Traveling', value: '45', icon: <Calendar className="h-5 w-5" />, color: 'from-purple-500 to-pink-500' },
+    { label: 'Favorite Destinations', value: '6', icon: <Heart className="h-5 w-5" />, color: 'from-orange-500 to-amber-500' }
   ];
 
-  const recentTrips = [
-    {
-      id: '1',
-      title: 'European Adventure',
-      destination: 'Paris, Rome, Barcelona',
-      image: 'https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
-      date: 'Jun 2024',
-      status: 'completed'
-    },
-    {
-      id: '2',
-      title: 'Tokyo Explorer',
-      destination: 'Tokyo, Japan',
-      image: 'https://images.pexels.com/photos/2506923/pexels-photo-2506923.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
-      date: 'Mar 2024',
-      status: 'completed'
-    },
-    {
-      id: '3',
-      title: 'Bali Retreat',
-      destination: 'Bali, Indonesia',
-      image: 'https://images.pexels.com/photos/1320684/pexels-photo-1320684.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
-      date: 'Aug 2024',
-      status: 'upcoming'
-    }
+  // Enhanced background particles with more variety
+  const particles = Array.from({ length: 40 }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    size: Math.random() * 8 + 3,
+    duration: Math.random() * 25 + 15,
+    delay: Math.random() * 8,
+    type: ['star', 'circle', 'square', 'triangle'][Math.floor(Math.random() * 4)],
+    color: ['blue', 'purple', 'pink', 'indigo', 'green', 'orange'][Math.floor(Math.random() * 6)]
+  }));
+
+  // Floating icons
+  const floatingIcons = [
+    { icon: <Star className="h-4 w-4" />, color: "text-yellow-400", delay: 0 },
+    { icon: <Heart className="h-4 w-4" />, color: "text-red-400", delay: 2 },
+    { icon: <Zap className="h-4 w-4" />, color: "text-blue-400", delay: 4 },
+    { icon: <Target className="h-4 w-4" />, color: "text-green-400", delay: 6 }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden">
+      {/* Enhanced Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* Floating gradient orbs with more complex animations */}
+        <motion.div
+          animate={{
+            x: [0, 100, -50, 0],
+            y: [0, -50, 80, 0],
+            scale: [1, 1.2, 0.8, 1],
+            rotate: [0, 180, 360, 0],
+          }}
+          transition={{
+            duration: 25,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-r from-blue-400/30 to-purple-400/30 rounded-full"
+        />
+        <motion.div
+          animate={{
+            x: [0, -80, 60, 0],
+            y: [0, 60, -40, 0],
+            scale: [1, 0.8, 1.3, 1],
+            rotate: [0, -180, 360, 0],
+          }}
+          transition={{
+            duration: 30,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 3
+          }}
+          className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-r from-purple-400/30 to-pink-400/30 rounded-full"
+        />
+        <motion.div
+          animate={{
+            x: [0, 60, -30, 0],
+            y: [0, -40, 60, 0],
+            scale: [1, 1.3, 0.7, 1],
+            rotate: [0, 90, 270, 0],
+          }}
+          transition={{
+            duration: 22,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 6
+          }}
+          className="absolute bottom-20 left-1/4 w-28 h-28 bg-gradient-to-r from-indigo-400/30 to-blue-400/30 rounded-full"
+        />
+        <motion.div
+          animate={{
+            x: [0, -40, 70, 0],
+            y: [0, 80, -30, 0],
+            scale: [1, 0.9, 1.4, 1],
+            rotate: [0, -90, 180, 0],
+          }}
+          transition={{
+            duration: 28,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1
+          }}
+          className="absolute bottom-40 right-1/3 w-20 h-20 bg-gradient-to-r from-cyan-400/30 to-blue-400/30 rounded-full"
+        />
+
+        {/* Animated particles with different shapes */}
+        {particles.map((particle) => (
+          <motion.div
+            key={particle.id}
+            className={`absolute ${particle.color}-400/50`}
+            style={{
+              left: `${particle.x}%`,
+              top: `${particle.y}%`,
+              width: `${particle.size}px`,
+              height: `${particle.size}px`,
+            }}
+            animate={{
+              y: [0, -150, 0],
+              x: [0, Math.random() * 50 - 25, 0],
+              opacity: [0, 1, 0],
+              scale: [0, 1.5, 0],
+              rotate: [0, 360, 720],
+            }}
+            transition={{
+              duration: particle.duration,
+              repeat: Infinity,
+              delay: particle.delay,
+              ease: "easeInOut"
+            }}
+          >
+            {particle.type === 'star' && <Star className="w-full h-full" />}
+            {particle.type === 'circle' && <div className="w-full h-full rounded-full bg-current" />}
+            {particle.type === 'square' && <div className="w-full h-full bg-current transform rotate-45" />}
+            {particle.type === 'triangle' && <div className="w-full h-full bg-current clip-path-triangle" />}
+          </motion.div>
+        ))}
+
+        {/* Geometric shapes with enhanced animations */}
+        <motion.div
+          animate={{
+            rotate: [0, 360, 720],
+            scale: [1, 1.2, 0.8, 1],
+            x: [0, 20, -20, 0],
+            y: [0, -20, 20, 0],
+          }}
+          transition={{
+            duration: 35,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+          className="absolute top-1/4 left-1/4 w-16 h-16 border-2 border-blue-300/30 rounded-lg"
+        />
+        <motion.div
+          animate={{
+            rotate: [360, 0, -360],
+            scale: [1, 0.9, 1.3, 1],
+            x: [0, -15, 15, 0],
+            y: [0, 15, -15, 0],
+          }}
+          transition={{
+            duration: 30,
+            repeat: Infinity,
+            ease: "linear",
+            delay: 8
+          }}
+          className="absolute bottom-1/4 right-1/4 w-12 h-12 border-2 border-purple-300/30 rounded-full"
+        />
+
+        {/* Floating icons */}
+        {floatingIcons.map((item, index) => (
+          <motion.div
+            key={index}
+            className={`absolute ${item.color}`}
+            style={{
+              left: `${20 + index * 20}%`,
+              top: `${30 + index * 15}%`,
+            }}
+            animate={{
+              y: [0, -20, 0],
+              x: [0, 10, 0],
+              rotate: [0, 360, 0],
+              scale: [1, 1.2, 1],
+            }}
+            transition={{
+              duration: 4 + index,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: item.delay
+            }}
+          >
+            {item.icon}
+          </motion.div>
+        ))}
+      </div>
+
+      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          transition={{ duration: 0.6 }}
+          className="text-center mb-8"
         >
-          <div className="flex items-center space-x-4 mb-4">
-            <div className="p-3 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-xl">
-              <User className="h-8 w-8 text-white" />
-            </div>
-            <div>
-              <h1 className="text-4xl font-bold text-gray-900">
-                My <span className="gradient-text">Profile</span>
-              </h1>
-              <p className="text-gray-600 mt-1">Manage your account and travel preferences</p>
-            </div>
-          </div>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Profile Settings</h1>
+          <p className="text-gray-600">Manage your account and preferences</p>
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Profile Card */}
-            <div className="card p-8">
-              <div className="flex items-start justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">Personal Information</h2>
-                <button
+          {/* Profile Card */}
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="lg:col-span-1"
+          >
+            <div className="bg-white/90 rounded-3xl shadow-lg border border-white/20 p-8 sticky top-8">
+              {/* Avatar Section */}
+              <div className="text-center mb-8">
+                <div className="relative inline-block">
+                  <motion.div
+                    className="w-32 h-32 rounded-full overflow-hidden mx-auto mb-4 ring-4 ring-blue-200"
+                    whileHover={{ scale: 1.05 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <img
+                      src={user?.avatar || 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=1'}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
+                  </motion.div>
+                  <motion.label
+                    className="absolute bottom-2 right-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white p-2 rounded-full cursor-pointer shadow-lg"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <Camera className="h-4 w-4" />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarUpload}
+                      className="hidden"
+                    />
+                  </motion.label>
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">{user?.name}</h2>
+                <p className="text-gray-600 mb-4">{user?.email}</p>
+                <motion.button
                   onClick={() => setIsEditing(!isEditing)}
-                  className="flex items-center px-4 py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all duration-300"
+                  className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-2 rounded-xl hover:from-blue-600 hover:to-purple-600 transition-all duration-300 shadow-lg"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
                   {isEditing ? 'Cancel' : 'Edit Profile'}
-                </button>
+                </motion.button>
+              </div>
+
+              {/* Travel Stats */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Travel Stats</h3>
+                {travelStats.map((stat, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-xl"
+                    whileHover={{ scale: 1.02 }}
+                  >
+                    <div className="flex items-center">
+                      <motion.div 
+                        className={`p-2 rounded-lg bg-gradient-to-r ${stat.color} mr-3`}
+                        whileHover={{ rotate: 360, scale: 1.1 }}
+                        transition={{ duration: 0.6 }}
+                      >
+                        <div className="text-white">{stat.icon}</div>
+                      </motion.div>
+                      <span className="text-gray-700">{stat.label}</span>
+                    </div>
+                    <span className="font-bold text-gray-900">{stat.value}</span>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Main Content */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="lg:col-span-2 space-y-8"
+          >
+            {/* Profile Information */}
+            <div className="bg-white/90 rounded-3xl shadow-lg border border-white/20 p-8">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-2xl font-bold text-gray-900">Profile Information</h3>
+                <motion.div
+                  animate={{
+                    boxShadow: [
+                      "0 4px 12px rgba(59, 130, 246, 0.2)",
+                      "0 8px 20px rgba(147, 51, 234, 0.3)",
+                      "0 4px 12px rgba(59, 130, 246, 0.2)"
+                    ]
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                >
+                  <Sparkles className="h-6 w-6 text-blue-500" />
+                </motion.div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      disabled={!isEditing}
-                      className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:outline-none transition-colors disabled:bg-gray-50"
-                    />
-                  </div>
+                  <motion.input
+                    whileFocus={{ scale: 1.02 }}
+                    whileHover={{ scale: 1.01 }}
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-200 bg-white/80 disabled:bg-gray-50"
+                  />
                 </div>
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      disabled={!isEditing}
-                      className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:outline-none transition-colors disabled:bg-gray-50"
-                    />
-                  </div>
+                  <motion.input
+                    whileFocus={{ scale: 1.02 }}
+                    whileHover={{ scale: 1.01 }}
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-200 bg-white/80 disabled:bg-gray-50"
+                  />
                 </div>
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Phone</label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      disabled={!isEditing}
-                      className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:outline-none transition-colors disabled:bg-gray-50"
-                    />
-                  </div>
+                  <motion.input
+                    whileFocus={{ scale: 1.02 }}
+                    whileHover={{ scale: 1.01 }}
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-200 bg-white/80 disabled:bg-gray-50"
+                  />
                 </div>
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Location</label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <input
-                      type="text"
-                      name="location"
-                      value={formData.location}
-                      onChange={handleInputChange}
-                      disabled={!isEditing}
-                      className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:outline-none transition-colors disabled:bg-gray-50"
-                    />
-                  </div>
+                  <motion.input
+                    whileFocus={{ scale: 1.02 }}
+                    whileHover={{ scale: 1.01 }}
+                    type="text"
+                    name="location"
+                    value={formData.location}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-200 bg-white/80 disabled:bg-gray-50"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Date of Birth</label>
+                  <motion.input
+                    whileFocus={{ scale: 1.02 }}
+                    whileHover={{ scale: 1.01 }}
+                    type="date"
+                    name="dateOfBirth"
+                    value={formData.dateOfBirth}
+                    onChange={handleInputChange}
+                    disabled={!isEditing}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-200 bg-white/80 disabled:bg-gray-50"
+                  />
                 </div>
 
                 <div className="md:col-span-2">
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Bio</label>
-                  <textarea
+                  <motion.textarea
+                    whileFocus={{ scale: 1.02 }}
+                    whileHover={{ scale: 1.01 }}
                     name="bio"
                     value={formData.bio}
                     onChange={handleInputChange}
                     disabled={!isEditing}
                     rows={4}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:outline-none transition-colors disabled:bg-gray-50 resize-none"
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-200 bg-white/80 disabled:bg-gray-50 resize-none"
                     placeholder="Tell us about yourself..."
                   />
                 </div>
               </div>
 
               {isEditing && (
-                <div className="mt-6 flex justify-end">
-                  <button
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="mt-6 flex justify-end"
+                >
+                  <motion.button
                     onClick={handleSaveProfile}
                     disabled={isLoading}
-                    className="flex items-center px-6 py-3 bg-gradient-to-r from-success-500 to-success-600 text-white rounded-xl hover:from-success-600 hover:to-success-700 transition-all duration-300 disabled:opacity-50"
+                    className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-8 py-3 rounded-xl hover:from-blue-600 hover:to-purple-600 transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    animate={{
+                      boxShadow: [
+                        "0 10px 25px rgba(59, 130, 246, 0.3)",
+                        "0 20px 40px rgba(147, 51, 234, 0.4)",
+                        "0 10px 25px rgba(59, 130, 246, 0.3)"
+                      ]
+                    }}
+                    transition={{
+                      boxShadow: {
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }
+                    }}
                   >
                     {isLoading ? (
                       <LoadingSpinner size="sm" color="white" />
@@ -282,256 +555,181 @@ const UserProfile: React.FC = () => {
                         Save Changes
                       </>
                     )}
-                  </button>
-                </div>
+                  </motion.button>
+                </motion.div>
               )}
             </div>
 
-            {/* Password Change */}
-            <div className="card p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Change Password</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Preferences */}
+            <div className="bg-white/90 rounded-3xl shadow-lg border border-white/20 p-8">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">Preferences</h3>
+              <div className="space-y-4">
+                {Object.entries(formData.preferences).map(([key, value]) => (
+                  <motion.div
+                    key={key}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
+                    className="flex items-center justify-between p-4 bg-gray-50 rounded-xl"
+                    whileHover={{ scale: 1.02 }}
+                  >
+                    <div className="flex items-center">
+                      <motion.div 
+                        className="p-2 rounded-lg bg-gradient-to-r from-green-500 to-teal-500 mr-3"
+                        whileHover={{ rotate: 360, scale: 1.1 }}
+                        transition={{ duration: 0.6 }}
+                      >
+                        <div className="text-white">
+                          {key === 'notifications' && <Bell className="h-4 w-4" />}
+                          {key === 'emailUpdates' && <Mail className="h-4 w-4" />}
+                          {key === 'publicProfile' && <Globe className="h-4 w-4" />}
+                        </div>
+                      </motion.div>
+                      <div>
+                        <p className="font-semibold text-gray-900 capitalize">
+                          {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {key === 'notifications' && 'Receive push notifications'}
+                          {key === 'emailUpdates' && 'Get email updates about your trips'}
+                          {key === 'publicProfile' && 'Make your profile visible to other travelers'}
+                        </p>
+                      </div>
+                    </div>
+                    <motion.button
+                      onClick={() => handlePreferenceChange(key)}
+                      className={`relative w-12 h-6 rounded-full transition-colors duration-200 ${
+                        value ? 'bg-gradient-to-r from-blue-500 to-purple-500' : 'bg-gray-300'
+                      }`}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <motion.div
+                        className="absolute top-1 w-4 h-4 bg-white rounded-full shadow-md"
+                        animate={{ x: value ? 26 : 2 }}
+                        transition={{ duration: 0.2 }}
+                      />
+                    </motion.button>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+
+            {/* Change Password */}
+            <div className="bg-white/90 rounded-3xl shadow-lg border border-white/20 p-8">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">Change Password</h3>
+              <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Current Password</label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <input
+                    <motion.input
+                      whileFocus={{ scale: 1.02 }}
+                      whileHover={{ scale: 1.01 }}
                       type={showPassword ? 'text' : 'password'}
                       name="currentPassword"
                       value={passwordData.currentPassword}
                       onChange={handlePasswordChange}
-                      className="w-full pl-10 pr-10 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:outline-none transition-colors"
+                      className="w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-200 bg-white/80"
                     />
-                    <button
+                    <motion.button
                       type="button"
+                      className="absolute inset-y-0 right-0 pr-4 flex items-center"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
                     >
-                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                    </button>
+                      {showPassword ? <EyeOff className="h-5 w-5 text-gray-400" /> : <Eye className="h-5 w-5 text-gray-400" />}
+                    </motion.button>
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">New Password</label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <input
+                    <motion.input
+                      whileFocus={{ scale: 1.02 }}
+                      whileHover={{ scale: 1.01 }}
                       type={showNewPassword ? 'text' : 'password'}
                       name="newPassword"
                       value={passwordData.newPassword}
                       onChange={handlePasswordChange}
-                      className="w-full pl-10 pr-10 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:outline-none transition-colors"
+                      className="w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-200 bg-white/80"
                     />
-                    <button
+                    <motion.button
                       type="button"
+                      className="absolute inset-y-0 right-0 pr-4 flex items-center"
                       onClick={() => setShowNewPassword(!showNewPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
                     >
-                      {showNewPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                    </button>
+                      {showNewPassword ? <EyeOff className="h-5 w-5 text-gray-400" /> : <Eye className="h-5 w-5 text-gray-400" />}
+                    </motion.button>
                   </div>
                 </div>
 
-                <div className="md:col-span-2">
+                <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Confirm New Password</label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                    <input
+                    <motion.input
+                      whileFocus={{ scale: 1.02 }}
+                      whileHover={{ scale: 1.01 }}
                       type={showConfirmPassword ? 'text' : 'password'}
                       name="confirmPassword"
                       value={passwordData.confirmPassword}
                       onChange={handlePasswordChange}
-                      className="w-full pl-10 pr-10 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:outline-none transition-colors"
+                      className="w-full px-4 py-3 pr-12 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-200 bg-white/80"
                     />
-                    <button
+                    <motion.button
                       type="button"
+                      className="absolute inset-y-0 right-0 pr-4 flex items-center"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
                     >
-                      {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                    </button>
+                      {showConfirmPassword ? <EyeOff className="h-5 w-5 text-gray-400" /> : <Eye className="h-5 w-5 text-gray-400" />}
+                    </motion.button>
                   </div>
                 </div>
-              </div>
 
-              <div className="mt-6 flex justify-end">
-                <button
-                  onClick={handleChangePassword}
-                  disabled={isLoading}
-                  className="flex items-center px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all duration-300 disabled:opacity-50"
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="flex justify-end"
                 >
-                  {isLoading ? (
-                    <LoadingSpinner size="sm" color="white" />
-                  ) : (
-                    <>
-                      <Shield className="h-5 w-5 mr-2" />
-                      Change Password
-                    </>
-                  )}
-                </button>
+                  <motion.button
+                    onClick={handleChangePassword}
+                    disabled={isLoading}
+                    className="bg-gradient-to-r from-green-500 to-teal-500 text-white px-8 py-3 rounded-xl hover:from-green-600 hover:to-teal-600 transition-all duration-300 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    animate={{
+                      boxShadow: [
+                        "0 10px 25px rgba(34, 197, 94, 0.3)",
+                        "0 20px 40px rgba(20, 184, 166, 0.4)",
+                        "0 10px 25px rgba(34, 197, 94, 0.3)"
+                      ]
+                    }}
+                    transition={{
+                      boxShadow: {
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }
+                    }}
+                  >
+                    {isLoading ? (
+                      <LoadingSpinner size="sm" color="white" />
+                    ) : (
+                      <>
+                        <Lock className="h-5 w-5 mr-2" />
+                        Change Password
+                      </>
+                    )}
+                  </motion.button>
+                </motion.div>
               </div>
             </div>
-
-            {/* Preferences */}
-            <div className="card p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Preferences</h2>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                  <div className="flex items-center">
-                    <Bell className="h-5 w-5 text-primary-600 mr-3" />
-                    <div>
-                      <h3 className="font-semibold text-gray-900">Push Notifications</h3>
-                      <p className="text-sm text-gray-600">Receive notifications about your trips</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => handlePreferenceChange('notifications')}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      formData.preferences.notifications ? 'bg-primary-600' : 'bg-gray-300'
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        formData.preferences.notifications ? 'translate-x-6' : 'translate-x-1'
-                      }`}
-                    />
-                  </button>
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                  <div className="flex items-center">
-                    <Mail className="h-5 w-5 text-secondary-600 mr-3" />
-                    <div>
-                      <h3 className="font-semibold text-gray-900">Email Updates</h3>
-                      <p className="text-sm text-gray-600">Receive email updates and newsletters</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => handlePreferenceChange('emailUpdates')}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      formData.preferences.emailUpdates ? 'bg-secondary-600' : 'bg-gray-300'
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        formData.preferences.emailUpdates ? 'translate-x-6' : 'translate-x-1'
-                      }`}
-                    />
-                  </button>
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                  <div className="flex items-center">
-                    <Globe className="h-5 w-5 text-accent-600 mr-3" />
-                    <div>
-                      <h3 className="font-semibold text-gray-900">Public Profile</h3>
-                      <p className="text-sm text-gray-600">Allow others to see your profile</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => handlePreferenceChange('publicProfile')}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      formData.preferences.publicProfile ? 'bg-accent-600' : 'bg-gray-300'
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        formData.preferences.publicProfile ? 'translate-x-6' : 'translate-x-1'
-                      }`}
-                    />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Profile Avatar */}
-            <div className="card p-6 text-center">
-              <div className="relative inline-block mb-4">
-                <div className="w-32 h-32 rounded-full overflow-hidden bg-gradient-to-r from-primary-500 to-secondary-500 p-1">
-                  <div className="w-full h-full rounded-full bg-gray-200 flex items-center justify-center">
-                    <User className="h-16 w-16 text-gray-400" />
-                  </div>
-                </div>
-                <label className="absolute bottom-0 right-0 bg-white rounded-full p-2 shadow-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                  <Camera className="h-5 w-5 text-gray-600" />
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleAvatarUpload}
-                    className="hidden"
-                  />
-                </label>
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-1">{formData.name || 'Your Name'}</h3>
-              <p className="text-gray-600 mb-4">{formData.location || 'Location not set'}</p>
-              <p className="text-sm text-gray-500">{formData.bio || 'No bio yet'}</p>
-            </div>
-
-            {/* Stats */}
-            <div className="card p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Travel Stats</h3>
-              <div className="space-y-4">
-                {stats.map((stat, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-xl"
-                  >
-                    <div className="flex items-center">
-                      <div className={`p-2 bg-gradient-to-r ${stat.color} rounded-lg mr-3`}>
-                        <div className="text-white">{stat.icon}</div>
-                      </div>
-                      <span className="text-sm font-medium text-gray-700">{stat.label}</span>
-                    </div>
-                    <span className="text-lg font-bold text-gray-900">{stat.value}</span>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-
-            {/* Recent Trips */}
-            <div className="card p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Recent Trips</h3>
-              <div className="space-y-4">
-                {recentTrips.map((trip, index) => (
-                  <motion.div
-                    key={trip.id}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="group cursor-pointer"
-                  >
-                    <div className="relative overflow-hidden rounded-xl">
-                      <img
-                        src={trip.image}
-                        alt={trip.title}
-                        className="w-full h-20 object-cover group-hover:scale-110 transition-transform duration-300"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                      <div className="absolute bottom-2 left-2 right-2">
-                        <h4 className="text-white font-semibold text-sm">{trip.title}</h4>
-                        <p className="text-white/80 text-xs">{trip.destination}</p>
-                        <div className="flex items-center justify-between mt-1">
-                          <span className="text-white/80 text-xs">{trip.date}</span>
-                          <span className={`text-xs px-2 py-1 rounded-full ${
-                            trip.status === 'completed' ? 'bg-success-500 text-white' : 'bg-primary-500 text-white'
-                          }`}>
-                            {trip.status}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </div>

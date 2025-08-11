@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Filter, Star, Clock, Users, DollarSign, Heart, Plus, Zap, Globe, Mountain, Palette, Wine, Moon, ArrowRight } from 'lucide-react';
+import { Search, Filter, Star, Clock, Users, DollarSign, Heart, Plus, Zap, Globe, Mountain, Palette, Wine, Moon, ArrowRight, Target, Sparkles } from 'lucide-react';
 
 const ActivitySearch: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -10,13 +10,13 @@ const ActivitySearch: React.FC = () => {
   const [favorites, setFavorites] = useState<string[]>([]);
 
   const categories = [
-    { id: 'all', name: 'All Activities', icon: <Zap className="h-5 w-5" />, color: 'from-primary-500 to-primary-600' },
-    { id: 'outdoor', name: 'Outdoor', icon: <Mountain className="h-5 w-5" />, color: 'from-secondary-500 to-secondary-600' },
-    { id: 'cultural', name: 'Cultural', icon: <Globe className="h-5 w-5" />, color: 'from-accent-500 to-accent-600' },
-    { id: 'adventure', name: 'Adventure', icon: <Zap className="h-5 w-5" />, color: 'from-success-500 to-success-600' },
-    { id: 'food', name: 'Food & Drink', icon: <Wine className="h-5 w-5" />, color: 'from-primary-500 to-secondary-600' },
-    { id: 'wellness', name: 'Wellness', icon: <Heart className="h-5 w-5" />, color: 'from-accent-500 to-success-600' },
-    { id: 'nightlife', name: 'Nightlife', icon: <Moon className="h-5 w-5" />, color: 'from-secondary-500 to-accent-600' }
+    { id: 'all', name: 'All Activities', icon: <Zap className="h-5 w-5" />, color: 'from-blue-500 to-indigo-500' },
+    { id: 'outdoor', name: 'Outdoor', icon: <Mountain className="h-5 w-5" />, color: 'from-green-500 to-teal-500' },
+    { id: 'cultural', name: 'Cultural', icon: <Globe className="h-5 w-5" />, color: 'from-purple-500 to-pink-500' },
+    { id: 'adventure', name: 'Adventure', icon: <Zap className="h-5 w-5" />, color: 'from-orange-500 to-amber-500' },
+    { id: 'food', name: 'Food & Drink', icon: <Wine className="h-5 w-5" />, color: 'from-red-500 to-pink-500' },
+    { id: 'wellness', name: 'Wellness', icon: <Heart className="h-5 w-5" />, color: 'from-indigo-500 to-purple-500' },
+    { id: 'nightlife', name: 'Nightlife', icon: <Moon className="h-5 w-5" />, color: 'from-pink-500 to-rose-500' }
   ];
 
   const popularActivities = [
@@ -104,23 +104,23 @@ const ActivitySearch: React.FC = () => {
       reviews: 890,
       price: 55,
       duration: '3 hours',
-      groupSize: '4-10 people',
-      image: 'https://images.pexels.com/photos/1109541/pexels-photo-1109541.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
-      description: 'Create your own masterpiece in the artistic heart of Paris',
-      highlights: ['Art supplies included', 'Professional artist', 'Take home artwork', 'Historic location']
+      groupSize: '4-8 people',
+      image: 'https://images.pexels.com/photos/2675266/pexels-photo-2675266.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
+      description: 'Create your own artwork in the artistic heart of Paris',
+      highlights: ['Art supplies included', 'Professional artist', 'Take home artwork', 'Scenic location']
     },
     {
       id: '6',
-      name: 'Paris Bike Tour',
-      category: 'outdoor',
-      rating: 4.4,
-      reviews: 2100,
-      price: 40,
-      duration: '3.5 hours',
-      groupSize: '8-15 people',
-      image: 'https://images.pexels.com/photos/100582/pexels-photo-100582.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
-      description: 'Explore Paris landmarks on a guided bicycle tour',
-      highlights: ['Bike included', 'Multiple stops', 'Photo opportunities', 'Local guide']
+      name: 'Parisian Spa & Wellness Day',
+      category: 'wellness',
+      rating: 4.8,
+      reviews: 1230,
+      price: 120,
+      duration: '4 hours',
+      groupSize: '1-4 people',
+      image: 'https://images.pexels.com/photos/1307698/pexels-photo-1307698.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
+      description: 'Relaxing spa experience with traditional French treatments',
+      highlights: ['Massage therapy', 'Facial treatment', 'Sauna access', 'Refreshments included']
     }
   ];
 
@@ -129,14 +129,13 @@ const ActivitySearch: React.FC = () => {
                          activity.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || activity.category === selectedCategory;
     const matchesPrice = priceRange === 'all' || 
-      (priceRange === 'low' && activity.price <= 50) ||
-      (priceRange === 'medium' && activity.price > 50 && activity.price <= 100) ||
-      (priceRange === 'high' && activity.price > 100);
+                        (priceRange === 'budget' && activity.price <= 50) ||
+                        (priceRange === 'mid' && activity.price > 50 && activity.price <= 100) ||
+                        (priceRange === 'luxury' && activity.price > 100);
     const matchesDuration = duration === 'all' ||
-      (duration === 'short' && activity.duration.includes('1') || activity.duration.includes('2')) ||
-      (duration === 'medium' && activity.duration.includes('3') || activity.duration.includes('4')) ||
-      (duration === 'long' && activity.duration.includes('5') || activity.duration.includes('6'));
-    
+                           (duration === 'short' && activity.duration.includes('1') || activity.duration.includes('2')) ||
+                           (duration === 'medium' && activity.duration.includes('3') || activity.duration.includes('4')) ||
+                           (duration === 'long' && activity.duration.includes('5') || activity.duration.includes('6'));
     return matchesSearch && matchesCategory && matchesPrice && matchesDuration;
   });
 
@@ -146,296 +145,456 @@ const ActivitySearch: React.FC = () => {
     );
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
+  // Enhanced background particles with more variety
+  const particles = Array.from({ length: 40 }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    size: Math.random() * 8 + 3,
+    duration: Math.random() * 25 + 15,
+    delay: Math.random() * 8,
+    type: ['star', 'circle', 'square', 'triangle'][Math.floor(Math.random() * 4)],
+    color: ['blue', 'purple', 'pink', 'indigo', 'green', 'orange'][Math.floor(Math.random() * 6)]
+  }));
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
-  };
+  // Floating icons
+  const floatingIcons = [
+    { icon: <Star className="h-4 w-4" />, color: "text-yellow-400", delay: 0 },
+    { icon: <Heart className="h-4 w-4" />, color: "text-red-400", delay: 2 },
+    { icon: <Zap className="h-4 w-4" />, color: "text-blue-400", delay: 4 },
+    { icon: <Target className="h-4 w-4" />, color: "text-green-400", delay: 6 }
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden">
+      {/* Enhanced Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* Floating gradient orbs with more complex animations */}
+        <motion.div
+          animate={{
+            x: [0, 100, -50, 0],
+            y: [0, -50, 80, 0],
+            scale: [1, 1.2, 0.8, 1],
+            rotate: [0, 180, 360, 0],
+          }}
+          transition={{
+            duration: 25,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-r from-blue-400/30 to-purple-400/30 rounded-full"
+        />
+        <motion.div
+          animate={{
+            x: [0, -80, 60, 0],
+            y: [0, 60, -40, 0],
+            scale: [1, 0.8, 1.3, 1],
+            rotate: [0, -180, 360, 0],
+          }}
+          transition={{
+            duration: 30,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 3
+          }}
+          className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-r from-purple-400/30 to-pink-400/30 rounded-full"
+        />
+        <motion.div
+          animate={{
+            x: [0, 60, -30, 0],
+            y: [0, -40, 60, 0],
+            scale: [1, 1.3, 0.7, 1],
+            rotate: [0, 90, 270, 0],
+          }}
+          transition={{
+            duration: 22,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 6
+          }}
+          className="absolute bottom-20 left-1/4 w-28 h-28 bg-gradient-to-r from-indigo-400/30 to-blue-400/30 rounded-full"
+        />
+        <motion.div
+          animate={{
+            x: [0, -40, 70, 0],
+            y: [0, 80, -30, 0],
+            scale: [1, 0.9, 1.4, 1],
+            rotate: [0, -90, 180, 0],
+          }}
+          transition={{
+            duration: 28,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1
+          }}
+          className="absolute bottom-40 right-1/3 w-20 h-20 bg-gradient-to-r from-cyan-400/30 to-blue-400/30 rounded-full"
+        />
+
+        {/* Animated particles with different shapes */}
+        {particles.map((particle) => (
+          <motion.div
+            key={particle.id}
+            className={`absolute ${particle.color}-400/50`}
+            style={{
+              left: `${particle.x}%`,
+              top: `${particle.y}%`,
+              width: `${particle.size}px`,
+              height: `${particle.size}px`,
+            }}
+            animate={{
+              y: [0, -150, 0],
+              x: [0, Math.random() * 50 - 25, 0],
+              opacity: [0, 1, 0],
+              scale: [0, 1.5, 0],
+              rotate: [0, 360, 720],
+            }}
+            transition={{
+              duration: particle.duration,
+              repeat: Infinity,
+              delay: particle.delay,
+              ease: "easeInOut"
+            }}
+          >
+            {particle.type === 'star' && <Star className="w-full h-full" />}
+            {particle.type === 'circle' && <div className="w-full h-full rounded-full bg-current" />}
+            {particle.type === 'square' && <div className="w-full h-full bg-current transform rotate-45" />}
+            {particle.type === 'triangle' && <div className="w-full h-full bg-current clip-path-triangle" />}
+          </motion.div>
+        ))}
+
+        {/* Geometric shapes with enhanced animations */}
+        <motion.div
+          animate={{
+            rotate: [0, 360, 720],
+            scale: [1, 1.2, 0.8, 1],
+            x: [0, 20, -20, 0],
+            y: [0, -20, 20, 0],
+          }}
+          transition={{
+            duration: 35,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+          className="absolute top-1/4 left-1/4 w-16 h-16 border-2 border-blue-300/30 rounded-lg"
+        />
+        <motion.div
+          animate={{
+            rotate: [360, 0, -360],
+            scale: [1, 0.9, 1.3, 1],
+            x: [0, -15, 15, 0],
+            y: [0, 15, -15, 0],
+          }}
+          transition={{
+            duration: 30,
+            repeat: Infinity,
+            ease: "linear",
+            delay: 8
+          }}
+          className="absolute bottom-1/4 right-1/4 w-12 h-12 border-2 border-purple-300/30 rounded-full"
+        />
+
+        {/* Floating icons */}
+        {floatingIcons.map((item, index) => (
+          <motion.div
+            key={index}
+            className={`absolute ${item.color}`}
+            style={{
+              left: `${20 + index * 20}%`,
+              top: `${30 + index * 15}%`,
+            }}
+            animate={{
+              y: [0, -20, 0],
+              x: [0, 10, 0],
+              rotate: [0, 360, 0],
+              scale: [1, 1.2, 1],
+            }}
+            transition={{
+              duration: 4 + index,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: item.delay
+            }}
+          >
+            {item.icon}
+          </motion.div>
+        ))}
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-8"
+        >
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Discover Activities</h1>
+          <p className="text-gray-600">Find amazing experiences and adventures around the world</p>
+        </motion.div>
+
+        {/* Popular Activities */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
           className="mb-8"
         >
-          <div className="flex items-center space-x-4 mb-4">
-            <div className="p-3 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-xl">
-              <Zap className="h-8 w-8 text-white" />
-            </div>
-            <div>
-              <h1 className="text-4xl font-bold text-gray-900">
-                Discover <span className="gradient-text">Activities</span>
-              </h1>
-              <p className="text-gray-600 mt-1">Find amazing experiences and adventures</p>
-            </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Popular Activities</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {popularActivities.map((activity, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
+                className="relative overflow-hidden rounded-2xl cursor-pointer group"
+                whileHover={{ scale: 1.05 }}
+              >
+                <img
+                  src={activity.image}
+                  alt={activity.name}
+                  className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-white/80 via-white/20 to-transparent"></div>
+                <div className="absolute bottom-4 left-4 right-4">
+                  <h3 className="text-gray-900 font-bold text-lg mb-1">{activity.name}</h3>
+                  <p className="text-gray-700 text-sm mb-2">{activity.category}</p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
+                      <span className="text-gray-900 text-sm">{activity.rating}</span>
+                    </div>
+                    <span className="text-gray-900 font-bold">{activity.price}</span>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-3">
-            {/* Search and Filters */}
-            <div className="card p-6 mb-8">
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Search activities..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:outline-none transition-colors"
-                  />
-                </div>
-                <select
-                  value={priceRange}
-                  onChange={(e) => setPriceRange(e.target.value)}
-                  className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:outline-none transition-colors"
-                >
-                  <option value="all">All Prices</option>
-                  <option value="low">Under €50</option>
-                  <option value="medium">€50 - €100</option>
-                  <option value="high">Over €100</option>
-                </select>
-                <select
-                  value={duration}
-                  onChange={(e) => setDuration(e.target.value)}
-                  className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:outline-none transition-colors"
-                >
-                  <option value="all">All Durations</option>
-                  <option value="short">1-2 hours</option>
-                  <option value="medium">3-4 hours</option>
-                  <option value="long">5+ hours</option>
-                </select>
-              </div>
+        {/* Search and Filters */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="bg-white/90 rounded-3xl shadow-lg border border-white/20 p-6 mb-8"
+        >
+          <div className="flex flex-col lg:flex-row gap-6">
+            <div className="flex-1 relative">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <motion.input
+                whileFocus={{ scale: 1.02 }}
+                whileHover={{ scale: 1.01 }}
+                type="text"
+                placeholder="Search activities..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-200 bg-white/80"
+              />
             </div>
-
-            {/* Categories */}
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Categories</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-                {categories.map((category) => (
-                  <motion.button
-                    key={category.id}
-                    onClick={() => setSelectedCategory(category.id)}
-                    className={`p-4 rounded-xl border-2 transition-all duration-300 group ${
-                      selectedCategory === category.id
-                        ? `border-primary-500 bg-gradient-to-r ${category.color} text-white shadow-lg`
-                        : 'border-gray-200 bg-white hover:border-primary-300 hover:shadow-md'
-                    }`}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <div className="flex flex-col items-center space-y-2">
-                      <div className={`p-2 rounded-lg ${
-                        selectedCategory === category.id ? 'bg-white/20' : 'bg-gray-100'
-                      }`}>
-                        {category.icon}
-                      </div>
-                      <span className="text-xs font-medium text-center">{category.name}</span>
-                    </div>
-                  </motion.button>
-                ))}
-              </div>
-            </div>
-
-            {/* Activities Grid */}
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-            >
-              {filteredActivities.map((activity, index) => (
-                <motion.div
-                  key={activity.id}
-                  variants={itemVariants}
-                  className="card overflow-hidden group hover:shadow-2xl transition-all duration-300"
+            <div className="flex flex-wrap gap-2">
+              {categories.map((category) => (
+                <motion.button
+                  key={category.id}
+                  onClick={() => setSelectedCategory(category.id)}
+                  className={`flex items-center px-4 py-3 rounded-xl font-medium transition-all duration-200 ${
+                    selectedCategory === category.id
+                      ? `bg-gradient-to-r ${category.color} text-white shadow-lg`
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
-                  <div className="relative">
-                    <img
-                      src={activity.image}
-                      alt={activity.name}
-                      className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
-                    
-                    {/* Favorite Button */}
-                    <button
-                      onClick={() => toggleFavorite(activity.id)}
-                      className={`absolute top-4 right-4 p-2 rounded-full transition-all duration-300 ${
-                        favorites.includes(activity.id)
-                          ? 'bg-red-500 text-white shadow-lg'
-                          : 'bg-white/90 backdrop-blur-sm text-gray-600 hover:bg-red-500 hover:text-white'
-                      }`}
-                    >
-                      <Heart className={`h-5 w-5 ${favorites.includes(activity.id) ? 'fill-current' : ''}`} />
-                    </button>
-
-                    {/* Category Badge */}
-                    <div className="absolute top-4 left-4">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white/90 backdrop-blur-sm text-gray-700">
-                        {activity.category}
-                      </span>
-                    </div>
-
-                    {/* Price */}
-                    <div className="absolute bottom-4 right-4">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-white/90 backdrop-blur-sm text-gray-900">
-                        €{activity.price}
-                      </span>
-                    </div>
-
-                    {/* Rating */}
-                    <div className="absolute bottom-4 left-4">
-                      <div className="flex items-center bg-white/90 backdrop-blur-sm rounded-full px-3 py-1">
-                        <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
-                        <span className="text-sm font-medium text-gray-700">{activity.rating}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-6">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">
-                      {activity.name}
-                    </h3>
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">{activity.description}</p>
-                    
-                    <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                      <div className="flex items-center">
-                        <Clock className="h-4 w-4 mr-1" />
-                        {activity.duration}
-                      </div>
-                      <div className="flex items-center">
-                        <Users className="h-4 w-4 mr-1" />
-                        {activity.groupSize}
-                      </div>
-                    </div>
-
-                    {/* Highlights */}
-                    <div className="mb-4">
-                      <div className="flex flex-wrap gap-2">
-                        {activity.highlights.slice(0, 3).map((highlight, idx) => (
-                          <span
-                            key={idx}
-                            className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-700"
-                          >
-                            {highlight}
-                          </span>
-                        ))}
-                        {activity.highlights.length > 3 && (
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                            +{activity.highlights.length - 3} more
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <button className="w-full flex items-center justify-center py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all duration-300 group">
-                      <span className="font-semibold">Book Now</span>
-                      <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
-                    </button>
-                  </div>
-                </motion.div>
+                  <div className="mr-2">{category.icon}</div>
+                  {category.name}
+                </motion.button>
               ))}
-            </motion.div>
+            </div>
+          </div>
+          
+          <div className="flex flex-wrap gap-4 mt-6">
+            <select
+              value={priceRange}
+              onChange={(e) => setPriceRange(e.target.value)}
+              className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-200 bg-white/80"
+            >
+              <option value="all">All Prices</option>
+              <option value="budget">Budget (€0-50)</option>
+              <option value="mid">Mid-Range (€50-100)</option>
+              <option value="luxury">Luxury (€100+)</option>
+            </select>
+            
+            <select
+              value={duration}
+              onChange={(e) => setDuration(e.target.value)}
+              className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-200 bg-white/80"
+            >
+              <option value="all">All Durations</option>
+              <option value="short">Short (1-2 hours)</option>
+              <option value="medium">Medium (3-4 hours)</option>
+              <option value="long">Long (5+ hours)</option>
+            </select>
+          </div>
+        </motion.div>
 
-            {/* Empty State */}
-            {filteredActivities.length === 0 && (
+        {/* Results */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+        >
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Available Activities</h2>
+            <div className="flex items-center">
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center py-12"
+                animate={{
+                  boxShadow: [
+                    "0 4px 12px rgba(59, 130, 246, 0.2)",
+                    "0 8px 20px rgba(147, 51, 234, 0.3)",
+                    "0 4px 12px rgba(59, 130, 246, 0.2)"
+                  ]
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
               >
-                <div className="max-w-md mx-auto">
-                  <div className="w-24 h-24 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Search className="h-12 w-12 text-white" />
+                <Sparkles className="h-6 w-6 text-blue-500 mr-2" />
+              </motion.div>
+              <span className="text-gray-600">{filteredActivities.length} results</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredActivities.map((activity, index) => (
+              <motion.div
+                key={activity.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.7 + index * 0.1 }}
+                className="bg-white/90 rounded-2xl shadow-lg border border-white/20 overflow-hidden hover:shadow-xl transition-all duration-300"
+                whileHover={{ y: -5, scale: 1.02 }}
+              >
+                <div className="relative h-48">
+                  <img
+                    src={activity.image}
+                    alt={activity.name}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-white/60 to-transparent"></div>
+                  <motion.button
+                    onClick={() => toggleFavorite(activity.id)}
+                    className="absolute top-4 right-4 p-2 bg-white/90 rounded-full hover:bg-white transition-colors"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <Heart 
+                      className={`h-5 w-5 ${
+                        favorites.includes(activity.id) 
+                          ? 'text-red-500 fill-current' 
+                          : 'text-gray-400'
+                      }`} 
+                    />
+                  </motion.button>
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <h3 className="text-gray-900 font-bold text-lg mb-1">{activity.name}</h3>
+                    <div className="flex items-center">
+                      <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
+                      <span className="text-gray-900 text-sm mr-2">{activity.rating}</span>
+                      <span className="text-gray-700 text-sm">({activity.reviews.toLocaleString()} reviews)</span>
+                    </div>
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">No activities found</h3>
-                  <p className="text-gray-600 mb-6">
-                    Try adjusting your search or filter criteria to find what you're looking for.
-                  </p>
+                </div>
+                
+                <div className="p-6">
+                  <p className="text-gray-600 mb-4 line-clamp-2">{activity.description}</p>
+                  
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Clock className="h-4 w-4 mr-1" />
+                      {activity.duration}
+                    </div>
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Users className="h-4 w-4 mr-1" />
+                      {activity.groupSize}
+                    </div>
+                  </div>
+                  
+                  <div className="mb-4">
+                    <div className="text-lg font-bold text-gray-900 mb-2">€{activity.price}</div>
+                    <div className="flex flex-wrap gap-1">
+                      {activity.highlights.slice(0, 2).map((highlight, idx) => (
+                        <span key={idx} className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+                          {highlight}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <motion.button
+                      className="text-blue-600 hover:text-blue-700 font-medium flex items-center"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      View Details
+                      <ArrowRight className="h-4 w-4 ml-1" />
+                    </motion.button>
+                    
+                    <motion.button
+                      className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-2 rounded-xl hover:from-blue-600 hover:to-purple-600 transition-all duration-300 shadow-lg"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      animate={{
+                        boxShadow: [
+                          "0 4px 12px rgba(59, 130, 246, 0.3)",
+                          "0 8px 20px rgba(147, 51, 234, 0.4)",
+                          "0 4px 12px rgba(59, 130, 246, 0.3)"
+                        ]
+                      }}
+                      transition={{
+                        boxShadow: {
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: "easeInOut"
+                        }
+                      }}
+                    >
+                      Book Now
+                    </motion.button>
+                  </div>
                 </div>
               </motion.div>
-            )}
+            ))}
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Popular Activities */}
-            <div className="card p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Popular Activities</h3>
-              <div className="space-y-4">
-                {popularActivities.map((activity, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="group cursor-pointer"
-                  >
-                    <div className="relative overflow-hidden rounded-xl">
-                      <img
-                        src={activity.image}
-                        alt={activity.name}
-                        className="w-full h-24 object-cover group-hover:scale-110 transition-transform duration-300"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                      <div className="absolute bottom-2 left-2 right-2">
-                        <h4 className="text-white font-semibold text-sm">{activity.name}</h4>
-                        <div className="flex items-center justify-between mt-1">
-                          <span className="text-white/80 text-xs">{activity.category}</span>
-                          <div className="flex items-center">
-                            <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                            <span className="text-white text-xs ml-1">{activity.rating}</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between mt-1">
-                          <span className="text-white/80 text-xs">{activity.price}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-
-            {/* Activity Tips */}
-            <div className="card p-6 bg-gradient-to-r from-primary-50 to-secondary-50 border-0">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">💡 Activity Tips</h3>
-              <ul className="space-y-3 text-sm text-gray-600">
-                <li className="flex items-start">
-                  <span className="w-2 h-2 bg-primary-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                  Book popular activities in advance
-                </li>
-                <li className="flex items-start">
-                  <span className="w-2 h-2 bg-primary-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                  Check weather conditions for outdoor activities
-                </li>
-                <li className="flex items-start">
-                  <span className="w-2 h-2 bg-primary-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                  Read recent reviews for current information
-                </li>
-                <li className="flex items-start">
-                  <span className="w-2 h-2 bg-primary-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                  Consider group size for better experience
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
+          {filteredActivities.length === 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="text-center py-12"
+            >
+              <motion.div 
+                className="mx-auto w-24 h-24 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mb-6"
+                animate={{
+                  y: [0, -10, 0],
+                  rotate: [0, 5, 0],
+                }}
+                transition={{
+                  duration: 4,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              >
+                <Zap className="h-12 w-12 text-white" />
+              </motion.div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">No activities found</h3>
+              <p className="text-gray-600">Try adjusting your search or filter criteria</p>
+            </motion.div>
+          )}
+        </motion.div>
       </div>
     </div>
   );

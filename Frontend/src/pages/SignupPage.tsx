@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Globe, Mail, Lock, User, Eye, EyeOff, Plane, ArrowRight, Heart } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Globe, Mail, Lock, User, Eye, EyeOff, Plane, ArrowRight, Heart, CheckCircle, Sparkles, Star, Zap, Target } from 'lucide-react';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -78,33 +78,193 @@ const SignupPage: React.FC = () => {
 
   const benefits = [
     {
-      icon: <Plane className="h-6 w-6" />,
-      title: "Smart Trip Planning",
-      description: "AI-powered suggestions for perfect itineraries"
+      icon: <CheckCircle className="h-5 w-5" />,
+      text: "AI-powered suggestions for perfect itineraries"
     },
     {
-      icon: <Heart className="h-6 w-6" />,
-      title: "Collaborative Travel",
-      description: "Plan trips with friends and family"
+      icon: <CheckCircle className="h-5 w-5" />,
+      text: "Plan trips with friends and family"
     },
     {
-      icon: <Globe className="h-6 w-6" />,
-      title: "Global Community",
-      description: "Connect with travelers worldwide"
+      icon: <CheckCircle className="h-5 w-5" />,
+      text: "Connect with travelers worldwide"
     }
   ];
 
+  // Enhanced background particles with more variety
+  const particles = Array.from({ length: 40 }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    size: Math.random() * 8 + 3,
+    duration: Math.random() * 25 + 15,
+    delay: Math.random() * 8,
+    type: ['star', 'circle', 'square', 'triangle'][Math.floor(Math.random() * 4)],
+    color: ['purple', 'pink', 'indigo', 'cyan', 'green', 'orange'][Math.floor(Math.random() * 6)]
+  }));
+
+  // Floating icons
+  const floatingIcons = [
+    { icon: <Star className="h-4 w-4" />, color: "text-yellow-400", delay: 0 },
+    { icon: <Heart className="h-4 w-4" />, color: "text-red-400", delay: 2 },
+    { icon: <Zap className="h-4 w-4" />, color: "text-blue-400", delay: 4 },
+    { icon: <Target className="h-4 w-4" />, color: "text-green-400", delay: 6 }
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-bright-blue via-bright-purple to-bright-pink relative overflow-hidden flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      {/* Animated Background Elements */}
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 relative overflow-hidden flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      {/* Enhanced Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-20 left-10 w-20 h-20 bg-bright-yellow/20 rounded-full animate-float"></div>
-        <div className="absolute top-40 right-20 w-16 h-16 bg-bright-green/20 rounded-full animate-float" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute bottom-20 left-1/4 w-24 h-24 bg-bright-orange/20 rounded-full animate-float" style={{ animationDelay: '4s' }}></div>
-        <div className="absolute bottom-40 right-1/3 w-12 h-12 bg-bright-cyan/20 rounded-full animate-float" style={{ animationDelay: '1s' }}></div>
+        {/* Floating gradient orbs with more complex animations */}
+        <motion.div
+          animate={{
+            x: [0, -120, 80, 0],
+            y: [0, 80, -60, 0],
+            scale: [1, 1.4, 0.7, 1],
+            rotate: [0, 180, 360, 0],
+          }}
+          transition={{
+            duration: 28,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          className="absolute top-20 left-10 w-36 h-36 bg-gradient-to-r from-purple-400/40 to-pink-400/40 rounded-full"
+        />
+        <motion.div
+          animate={{
+            x: [0, 100, -80, 0],
+            y: [0, -60, 100, 0],
+            scale: [1, 0.7, 1.5, 1],
+            rotate: [0, -180, 360, 0],
+          }}
+          transition={{
+            duration: 32,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 4
+          }}
+          className="absolute top-40 right-20 w-28 h-28 bg-gradient-to-r from-pink-400/40 to-rose-400/40 rounded-full"
+        />
+        <motion.div
+          animate={{
+            x: [0, -60, 90, 0],
+            y: [0, 40, -80, 0],
+            scale: [1, 1.5, 0.6, 1],
+            rotate: [0, 90, 270, 0],
+          }}
+          transition={{
+            duration: 26,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 8
+          }}
+          className="absolute bottom-20 left-1/4 w-32 h-32 bg-gradient-to-r from-indigo-400/40 to-purple-400/40 rounded-full"
+        />
+        <motion.div
+          animate={{
+            x: [0, 80, -50, 0],
+            y: [0, -100, 70, 0],
+            scale: [1, 0.8, 1.6, 1],
+            rotate: [0, -90, 180, 0],
+          }}
+          transition={{
+            duration: 30,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 2
+          }}
+          className="absolute bottom-40 right-1/3 w-24 h-24 bg-gradient-to-r from-cyan-400/40 to-blue-400/40 rounded-full"
+        />
+
+        {/* Animated particles with different shapes */}
+        {particles.map((particle) => (
+          <motion.div
+            key={particle.id}
+            className={`absolute ${particle.color}-400/50`}
+            style={{
+              left: `${particle.x}%`,
+              top: `${particle.y}%`,
+              width: `${particle.size}px`,
+              height: `${particle.size}px`,
+            }}
+            animate={{
+              y: [0, -200, 0],
+              x: [0, Math.random() * 60 - 30, 0],
+              opacity: [0, 1, 0],
+              scale: [0, 1.8, 0],
+              rotate: [0, 360, 720],
+            }}
+            transition={{
+              duration: particle.duration,
+              repeat: Infinity,
+              delay: particle.delay,
+              ease: "easeInOut"
+            }}
+          >
+            {particle.type === 'star' && <Star className="w-full h-full" />}
+            {particle.type === 'circle' && <div className="w-full h-full rounded-full bg-current" />}
+            {particle.type === 'square' && <div className="w-full h-full bg-current transform rotate-45" />}
+            {particle.type === 'triangle' && <div className="w-full h-full bg-current clip-path-triangle" />}
+          </motion.div>
+        ))}
+
+        {/* Geometric shapes with enhanced animations */}
+        <motion.div
+          animate={{
+            rotate: [0, 360, 720],
+            scale: [1, 1.3, 0.7, 1],
+            x: [0, 25, -25, 0],
+            y: [0, -25, 25, 0],
+          }}
+          transition={{
+            duration: 40,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+          className="absolute top-1/3 left-1/3 w-20 h-20 border-2 border-purple-300/40 rounded-lg"
+        />
+        <motion.div
+          animate={{
+            rotate: [360, 0, -360],
+            scale: [1, 0.8, 1.4, 1],
+            x: [0, -20, 20, 0],
+            y: [0, 20, -20, 0],
+          }}
+          transition={{
+            duration: 35,
+            repeat: Infinity,
+            ease: "linear",
+            delay: 10
+          }}
+          className="absolute bottom-1/3 right-1/3 w-16 h-16 border-2 border-pink-300/40 rounded-full"
+        />
+
+        {/* Floating icons */}
+        {floatingIcons.map((item, index) => (
+          <motion.div
+            key={index}
+            className={`absolute ${item.color}`}
+            style={{
+              left: `${20 + index * 20}%`,
+              top: `${30 + index * 15}%`,
+            }}
+            animate={{
+              y: [0, -20, 0],
+              x: [0, 10, 0],
+              rotate: [0, 360, 0],
+              scale: [1, 1.2, 1],
+            }}
+            transition={{
+              duration: 4 + index,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: item.delay
+            }}
+          >
+            {item.icon}
+          </motion.div>
+        ))}
       </div>
-      <div className="absolute inset-0 bg-black/20"></div>
-      <div className="absolute inset-0 bg-hero-pattern opacity-10"></div>
       
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -117,7 +277,7 @@ const SignupPage: React.FC = () => {
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-white space-y-8"
+          className="text-gray-900 space-y-8"
         >
           <div>
             <motion.div
@@ -126,43 +286,126 @@ const SignupPage: React.FC = () => {
               transition={{ duration: 0.6 }}
               className="mb-8"
             >
-              <Link to="/" className="flex items-center space-x-3 mb-6">
-                <div className="p-3 bg-white/20 backdrop-blur-md rounded-xl">
+              <Link to="/" className="flex items-center space-x-3 mb-6 group">
+                <motion.div 
+                  className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl shadow-lg group-hover:shadow-xl"
+                  whileHover={{ rotate: 360, scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  animate={{
+                    boxShadow: [
+                      "0 10px 25px rgba(147, 51, 234, 0.3)",
+                      "0 20px 40px rgba(236, 72, 153, 0.4)",
+                      "0 10px 25px rgba(147, 51, 234, 0.3)"
+                    ]
+                  }}
+                  transition={{ 
+                    duration: 0.6,
+                    boxShadow: {
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }
+                  }}
+                >
                   <Globe className="h-8 w-8 text-white" />
-                </div>
-                <span className="text-2xl font-bold text-white">GlobeTrotter</span>
+                </motion.div>
+                <motion.span 
+                  className="text-2xl font-bold text-gray-900 group-hover:text-purple-600 transition-colors"
+                  whileHover={{ scale: 1.05 }}
+                >
+                  GlobeTrotter
+                </motion.span>
               </Link>
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-md rounded-full mb-4">
-                <Heart className="h-8 w-8 text-white" />
-              </div>
             </motion.div>
-            <h1 className="text-5xl font-bold mb-6 text-shadow-lg">
-              Join the <span className="text-yellow-300">Adventure</span>
-            </h1>
-            <p className="text-xl text-white/90 mb-8">
+            <motion.h1 
+              className="text-4xl font-bold mb-6 text-gray-900"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+            >
+              Join the <motion.span 
+                className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent"
+                animate={{
+                  backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"]
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              >
+                Adventure
+              </motion.span>
+            </motion.h1>
+            <motion.p 
+              className="text-lg text-gray-600 mb-8"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+            >
               Start your journey with thousands of travelers worldwide. Create unforgettable memories and discover amazing destinations.
-            </p>
+            </motion.p>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-4">
             {benefits.map((benefit, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, x: -30 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 + index * 0.1 }}
-                className="flex items-center space-x-4 p-4 bg-white/10 backdrop-blur-md rounded-xl"
+                transition={{ duration: 0.6, delay: 0.5 + index * 0.1 }}
+                className="flex items-center space-x-3 group"
+                whileHover={{ x: 10, scale: 1.02 }}
               >
-                <div className="p-3 bg-white/20 rounded-lg">
-                  <div className="text-white">{benefit.icon}</div>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-white text-lg">{benefit.title}</h3>
-                  <p className="text-white/80">{benefit.description}</p>
-                </div>
+                <motion.div 
+                  className="p-1 bg-green-100 rounded-full group-hover:bg-green-200 transition-colors"
+                  whileHover={{ scale: 1.2, rotate: 360 }}
+                  whileTap={{ scale: 0.9 }}
+                  animate={{
+                    boxShadow: [
+                      "0 0 0 rgba(34, 197, 94, 0.4)",
+                      "0 0 20px rgba(34, 197, 94, 0.6)",
+                      "0 0 0 rgba(34, 197, 94, 0.4)"
+                    ]
+                  }}
+                  transition={{ 
+                    duration: 0.3,
+                    boxShadow: {
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }
+                  }}
+                >
+                  <div className="text-green-600">{benefit.icon}</div>
+                </motion.div>
+                <motion.span 
+                  className="text-gray-700 group-hover:text-gray-900 transition-colors"
+                  whileHover={{ scale: 1.02 }}
+                >
+                  {benefit.text}
+                </motion.span>
               </motion.div>
             ))}
           </div>
+
+          {/* Enhanced floating sparkles */}
+          <motion.div
+            animate={{
+              y: [0, -15, 0],
+              x: [0, 5, 0],
+              opacity: [0.5, 1, 0.5],
+              scale: [1, 1.2, 1],
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            className="absolute top-20 right-20"
+          >
+            <Sparkles className="h-6 w-6 text-purple-400" />
+          </motion.div>
         </motion.div>
 
         {/* Right Side - Signup Form */}
@@ -173,25 +416,39 @@ const SignupPage: React.FC = () => {
           className="max-w-md w-full"
         >
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-white mb-4 text-shadow">
+            <motion.h2 
+              className="text-3xl font-bold text-gray-900 mb-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+            >
               Create Your Account
-            </h2>
-            <p className="text-white/80">
+            </motion.h2>
+            <motion.p 
+              className="text-gray-600"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+            >
               Already have an account?{' '}
-              <Link to="/login" className="font-semibold text-yellow-300 hover:text-yellow-200 transition-colors">
+              <Link to="/login" className="font-semibold text-purple-600 hover:text-purple-700 transition-colors">
                 Sign in here
               </Link>
-            </p>
+            </motion.p>
           </div>
 
           <motion.form
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="space-y-6 bg-white/95 backdrop-blur-md p-8 rounded-2xl shadow-2xl border border-white/20"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            className="space-y-6 bg-white/90 p-8 rounded-2xl shadow-2xl border border-white/20 relative overflow-hidden"
             onSubmit={handleSubmit}
           >
-            <div className="space-y-6">
+            {/* Form background decoration */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-100/50 to-pink-100/50 rounded-full -translate-y-16 translate-x-16" />
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-pink-100/50 to-rose-100/50 rounded-full translate-y-12 -translate-x-12" />
+            
+            <div className="relative z-10 space-y-6">
               <div>
                 <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
                   Full Name
@@ -202,27 +459,31 @@ const SignupPage: React.FC = () => {
                   </div>
                   <motion.input
                     whileFocus={{ scale: 1.02 }}
+                    whileHover={{ scale: 1.01 }}
                     id="name"
                     name="name"
                     type="text"
                     value={formData.name}
                     onChange={handleInputChange}
                     className={`block w-full pl-12 pr-4 py-4 border-2 ${
-                      errors.name ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-primary-500'
-                    } rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200 bg-white/80 backdrop-blur-sm`}
+                      errors.name ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-purple-500'
+                    } rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-500/10 transition-all duration-200 bg-white/80`}
                     placeholder="Enter your full name"
                   />
                 </div>
-                {errors.name && (
-                  <motion.p
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mt-2 text-sm text-red-600 flex items-center"
-                  >
-                    <span className="w-1 h-1 bg-red-600 rounded-full mr-2"></span>
-                    {errors.name}
-                  </motion.p>
-                )}
+                <AnimatePresence>
+                  {errors.name && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -10, height: 0 }}
+                      animate={{ opacity: 1, y: 0, height: "auto" }}
+                      exit={{ opacity: 0, y: -10, height: 0 }}
+                      className="mt-2 text-sm text-red-600 flex items-center"
+                    >
+                      <span className="w-1 h-1 bg-red-600 rounded-full mr-2"></span>
+                      {errors.name}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
               </div>
 
               <div>
@@ -235,27 +496,31 @@ const SignupPage: React.FC = () => {
                   </div>
                   <motion.input
                     whileFocus={{ scale: 1.02 }}
+                    whileHover={{ scale: 1.01 }}
                     id="email"
                     name="email"
                     type="email"
                     value={formData.email}
                     onChange={handleInputChange}
                     className={`block w-full pl-12 pr-4 py-4 border-2 ${
-                      errors.email ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-primary-500'
-                    } rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200 bg-white/80 backdrop-blur-sm`}
+                      errors.email ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-purple-500'
+                    } rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-500/10 transition-all duration-200 bg-white/80`}
                     placeholder="Enter your email"
                   />
                 </div>
-                {errors.email && (
-                  <motion.p
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mt-2 text-sm text-red-600 flex items-center"
-                  >
-                    <span className="w-1 h-1 bg-red-600 rounded-full mr-2"></span>
-                    {errors.email}
-                  </motion.p>
-                )}
+                <AnimatePresence>
+                  {errors.email && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -10, height: 0 }}
+                      animate={{ opacity: 1, y: 0, height: "auto" }}
+                      exit={{ opacity: 0, y: -10, height: 0 }}
+                      className="mt-2 text-sm text-red-600 flex items-center"
+                    >
+                      <span className="w-1 h-1 bg-red-600 rounded-full mr-2"></span>
+                      {errors.email}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
               </div>
 
               <div>
@@ -268,38 +533,44 @@ const SignupPage: React.FC = () => {
                   </div>
                   <motion.input
                     whileFocus={{ scale: 1.02 }}
+                    whileHover={{ scale: 1.01 }}
                     id="password"
                     name="password"
                     type={showPassword ? 'text' : 'password'}
                     value={formData.password}
                     onChange={handleInputChange}
                     className={`block w-full pl-12 pr-12 py-4 border-2 ${
-                      errors.password ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-primary-500'
-                    } rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200 bg-white/80 backdrop-blur-sm`}
+                      errors.password ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-purple-500'
+                    } rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-500/10 transition-all duration-200 bg-white/80`}
                     placeholder="Create a password"
                   />
-                  <button
+                  <motion.button
                     type="button"
                     className="absolute inset-y-0 right-0 pr-4 flex items-center hover:text-gray-600 transition-colors"
                     onClick={() => setShowPassword(!showPassword)}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
                   >
                     {showPassword ? (
                       <EyeOff className="h-5 w-5 text-gray-400" />
                     ) : (
                       <Eye className="h-5 w-5 text-gray-400" />
                     )}
-                  </button>
+                  </motion.button>
                 </div>
-                {errors.password && (
-                  <motion.p
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mt-2 text-sm text-red-600 flex items-center"
-                  >
-                    <span className="w-1 h-1 bg-red-600 rounded-full mr-2"></span>
-                    {errors.password}
-                  </motion.p>
-                )}
+                <AnimatePresence>
+                  {errors.password && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -10, height: 0 }}
+                      animate={{ opacity: 1, y: 0, height: "auto" }}
+                      exit={{ opacity: 0, y: -10, height: 0 }}
+                      className="mt-2 text-sm text-red-600 flex items-center"
+                    >
+                      <span className="w-1 h-1 bg-red-600 rounded-full mr-2"></span>
+                      {errors.password}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
               </div>
 
               <div>
@@ -312,38 +583,44 @@ const SignupPage: React.FC = () => {
                   </div>
                   <motion.input
                     whileFocus={{ scale: 1.02 }}
+                    whileHover={{ scale: 1.01 }}
                     id="confirmPassword"
                     name="confirmPassword"
                     type={showConfirmPassword ? 'text' : 'password'}
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
                     className={`block w-full pl-12 pr-12 py-4 border-2 ${
-                      errors.confirmPassword ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-primary-500'
-                    } rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 transition-all duration-200 bg-white/80 backdrop-blur-sm`}
+                      errors.confirmPassword ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-purple-500'
+                    } rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-500/10 transition-all duration-200 bg-white/80`}
                     placeholder="Confirm your password"
                   />
-                  <button
+                  <motion.button
                     type="button"
                     className="absolute inset-y-0 right-0 pr-4 flex items-center hover:text-gray-600 transition-colors"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
                   >
                     {showConfirmPassword ? (
                       <EyeOff className="h-5 w-5 text-gray-400" />
                     ) : (
                       <Eye className="h-5 w-5 text-gray-400" />
                     )}
-                  </button>
+                  </motion.button>
                 </div>
-                {errors.confirmPassword && (
-                  <motion.p
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mt-2 text-sm text-red-600 flex items-center"
-                  >
-                    <span className="w-1 h-1 bg-red-600 rounded-full mr-2"></span>
-                    {errors.confirmPassword}
-                  </motion.p>
-                )}
+                <AnimatePresence>
+                  {errors.confirmPassword && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -10, height: 0 }}
+                      animate={{ opacity: 1, y: 0, height: "auto" }}
+                      exit={{ opacity: 0, y: -10, height: 0 }}
+                      className="mt-2 text-sm text-red-600 flex items-center"
+                    >
+                      <span className="w-1 h-1 bg-red-600 rounded-full mr-2"></span>
+                      {errors.confirmPassword}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
 
@@ -352,24 +629,70 @@ const SignupPage: React.FC = () => {
               whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={isLoading}
-              className="group relative w-full flex justify-center items-center py-4 px-6 border border-transparent text-lg font-semibold rounded-xl text-white btn-primary disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              className="group relative w-full flex justify-center items-center py-4 px-6 border border-transparent text-lg font-semibold rounded-xl text-white bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl relative z-10 overflow-hidden"
+              animate={{
+                boxShadow: [
+                  "0 10px 25px rgba(147, 51, 234, 0.3)",
+                  "0 20px 40px rgba(236, 72, 153, 0.4)",
+                  "0 10px 25px rgba(147, 51, 234, 0.3)"
+                ]
+              }}
+              transition={{
+                boxShadow: {
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }
+              }}
             >
-              {isLoading ? (
-                <LoadingSpinner size="sm" color="white" />
-              ) : (
-                <>
-                  Create Account
-                  <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-200" />
-                </>
-              )}
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+              <div className="relative flex items-center">
+                {isLoading ? (
+                  <LoadingSpinner size="sm" color="white" />
+                ) : (
+                  <>
+                    Create Account
+                    <motion.div
+                      animate={{
+                        x: [0, 5, 0]
+                      }}
+                      transition={{
+                        duration: 1.5,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                    >
+                      <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform duration-200" />
+                    </motion.div>
+                  </>
+                )}
+              </div>
             </motion.button>
 
-            <div className="text-xs text-gray-500 text-center p-4 bg-gradient-to-r from-primary-50 to-secondary-50 rounded-xl border border-primary-100">
+            <motion.div 
+              className="text-xs text-gray-500 text-center p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100 relative z-10"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              animate={{
+                boxShadow: [
+                  "0 4px 12px rgba(147, 51, 234, 0.1)",
+                  "0 8px 20px rgba(236, 72, 153, 0.2)",
+                  "0 4px 12px rgba(147, 51, 234, 0.1)"
+                ]
+              }}
+              transition={{
+                boxShadow: {
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }
+              }}
+            >
               By creating an account, you agree to our{' '}
-              <a href="#" className="text-primary-600 hover:text-primary-700 font-semibold">Terms of Service</a>
+              <a href="#" className="text-purple-600 hover:text-purple-700 font-semibold">Terms of Service</a>
               {' '}and{' '}
-              <a href="#" className="text-primary-600 hover:text-primary-700 font-semibold">Privacy Policy</a>
-            </div>
+              <a href="#" className="text-purple-600 hover:text-purple-700 font-semibold">Privacy Policy</a>
+            </motion.div>
           </motion.form>
         </motion.div>
       </motion.div>

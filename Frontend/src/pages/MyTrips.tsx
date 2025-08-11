@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Search, Filter, Calendar, MapPin, Users, MoreVertical, Edit, Trash2, Share2, Plane, Heart, Globe, Zap, ArrowRight } from 'lucide-react';
+import { Plus, Search, Filter, Calendar, MapPin, Users, MoreVertical, Edit, Trash2, Share2, Plane, Heart, Globe, Zap, ArrowRight, Star, Target, Sparkles } from 'lucide-react';
 
 const MyTrips: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -92,216 +92,431 @@ const MyTrips: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'upcoming': return 'bg-primary-100 text-primary-700';
-      case 'completed': return 'bg-success-100 text-success-700';
-      case 'planning': return 'bg-accent-100 text-accent-700';
+      case 'upcoming': return 'bg-blue-100 text-blue-700';
+      case 'completed': return 'bg-green-100 text-green-700';
+      case 'planning': return 'bg-yellow-100 text-yellow-700';
       default: return 'bg-gray-100 text-gray-700';
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'upcoming': return <Plane className="h-4 w-4" />;
-      case 'completed': return <Heart className="h-4 w-4" />;
+      case 'upcoming': return <Calendar className="h-4 w-4" />;
+      case 'completed': return <Plane className="h-4 w-4" />;
       case 'planning': return <Globe className="h-4 w-4" />;
-      default: return <Zap className="h-4 w-4" />;
+      default: return <MapPin className="h-4 w-4" />;
     }
-  };
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
   };
 
   const stats = [
-    { label: 'Total Trips', value: trips.length, icon: <Globe className="h-6 w-6" />, color: 'from-primary-500 to-primary-600' },
-    { label: 'Upcoming', value: trips.filter(t => t.status === 'upcoming').length, icon: <Plane className="h-6 w-6" />, color: 'from-secondary-500 to-secondary-600' },
-    { label: 'Completed', value: trips.filter(t => t.status === 'completed').length, icon: <Heart className="h-6 w-6" />, color: 'from-success-500 to-success-600' },
-    { label: 'Planning', value: trips.filter(t => t.status === 'planning').length, icon: <Zap className="h-6 w-6" />, color: 'from-accent-500 to-accent-600' }
+    { label: 'Total Trips', value: trips.length, icon: <Plane className="h-6 w-6" />, color: 'from-blue-500 to-indigo-500' },
+    { label: 'Upcoming', value: trips.filter(t => t.status === 'upcoming').length, icon: <Calendar className="h-6 w-6" />, color: 'from-purple-500 to-pink-500' },
+    { label: 'Completed', value: trips.filter(t => t.status === 'completed').length, icon: <Heart className="h-6 w-6" />, color: 'from-green-500 to-teal-500' },
+    { label: 'Planning', value: trips.filter(t => t.status === 'planning').length, icon: <Globe className="h-6 w-6" />, color: 'from-orange-500 to-amber-500' }
+  ];
+
+  // Enhanced background particles with more variety
+  const particles = Array.from({ length: 40 }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    size: Math.random() * 8 + 3,
+    duration: Math.random() * 25 + 15,
+    delay: Math.random() * 8,
+    type: ['star', 'circle', 'square', 'triangle'][Math.floor(Math.random() * 4)],
+    color: ['blue', 'purple', 'pink', 'indigo', 'green', 'orange'][Math.floor(Math.random() * 6)]
+  }));
+
+  // Floating icons
+  const floatingIcons = [
+    { icon: <Star className="h-4 w-4" />, color: "text-yellow-400", delay: 0 },
+    { icon: <Heart className="h-4 w-4" />, color: "text-red-400", delay: 2 },
+    { icon: <Zap className="h-4 w-4" />, color: "text-blue-400", delay: 4 },
+    { icon: <Target className="h-4 w-4" />, color: "text-green-400", delay: 6 }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden">
+      {/* Enhanced Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        {/* Floating gradient orbs with more complex animations */}
+        <motion.div
+          animate={{
+            x: [0, 100, -50, 0],
+            y: [0, -50, 80, 0],
+            scale: [1, 1.2, 0.8, 1],
+            rotate: [0, 180, 360, 0],
+          }}
+          transition={{
+            duration: 25,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-r from-blue-400/30 to-purple-400/30 rounded-full"
+        />
+        <motion.div
+          animate={{
+            x: [0, -80, 60, 0],
+            y: [0, 60, -40, 0],
+            scale: [1, 0.8, 1.3, 1],
+            rotate: [0, -180, 360, 0],
+          }}
+          transition={{
+            duration: 30,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 3
+          }}
+          className="absolute top-40 right-20 w-24 h-24 bg-gradient-to-r from-purple-400/30 to-pink-400/30 rounded-full"
+        />
+        <motion.div
+          animate={{
+            x: [0, 60, -30, 0],
+            y: [0, -40, 60, 0],
+            scale: [1, 1.3, 0.7, 1],
+            rotate: [0, 90, 270, 0],
+          }}
+          transition={{
+            duration: 22,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 6
+          }}
+          className="absolute bottom-20 left-1/4 w-28 h-28 bg-gradient-to-r from-indigo-400/30 to-blue-400/30 rounded-full"
+        />
+        <motion.div
+          animate={{
+            x: [0, -40, 70, 0],
+            y: [0, 80, -30, 0],
+            scale: [1, 0.9, 1.4, 1],
+            rotate: [0, -90, 180, 0],
+          }}
+          transition={{
+            duration: 28,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1
+          }}
+          className="absolute bottom-40 right-1/3 w-20 h-20 bg-gradient-to-r from-cyan-400/30 to-blue-400/30 rounded-full"
+        />
+
+        {/* Animated particles with different shapes */}
+        {particles.map((particle) => (
+          <motion.div
+            key={particle.id}
+            className={`absolute ${particle.color}-400/50`}
+            style={{
+              left: `${particle.x}%`,
+              top: `${particle.y}%`,
+              width: `${particle.size}px`,
+              height: `${particle.size}px`,
+            }}
+            animate={{
+              y: [0, -150, 0],
+              x: [0, Math.random() * 50 - 25, 0],
+              opacity: [0, 1, 0],
+              scale: [0, 1.5, 0],
+              rotate: [0, 360, 720],
+            }}
+            transition={{
+              duration: particle.duration,
+              repeat: Infinity,
+              delay: particle.delay,
+              ease: "easeInOut"
+            }}
+          >
+            {particle.type === 'star' && <Star className="w-full h-full" />}
+            {particle.type === 'circle' && <div className="w-full h-full rounded-full bg-current" />}
+            {particle.type === 'square' && <div className="w-full h-full bg-current transform rotate-45" />}
+            {particle.type === 'triangle' && <div className="w-full h-full bg-current clip-path-triangle" />}
+          </motion.div>
+        ))}
+
+        {/* Geometric shapes with enhanced animations */}
+        <motion.div
+          animate={{
+            rotate: [0, 360, 720],
+            scale: [1, 1.2, 0.8, 1],
+            x: [0, 20, -20, 0],
+            y: [0, -20, 20, 0],
+          }}
+          transition={{
+            duration: 35,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+          className="absolute top-1/4 left-1/4 w-16 h-16 border-2 border-blue-300/30 rounded-lg"
+        />
+        <motion.div
+          animate={{
+            rotate: [360, 0, -360],
+            scale: [1, 0.9, 1.3, 1],
+            x: [0, -15, 15, 0],
+            y: [0, 15, -15, 0],
+          }}
+          transition={{
+            duration: 30,
+            repeat: Infinity,
+            ease: "linear",
+            delay: 8
+          }}
+          className="absolute bottom-1/4 right-1/4 w-12 h-12 border-2 border-purple-300/30 rounded-full"
+        />
+
+        {/* Floating icons */}
+        {floatingIcons.map((item, index) => (
+          <motion.div
+            key={index}
+            className={`absolute ${item.color}`}
+            style={{
+              left: `${20 + index * 20}%`,
+              top: `${30 + index * 15}%`,
+            }}
+            animate={{
+              y: [0, -20, 0],
+              x: [0, 10, 0],
+              rotate: [0, 360, 0],
+              scale: [1, 1.2, 1],
+            }}
+            transition={{
+              duration: 4 + index,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: item.delay
+            }}
+          >
+            {item.icon}
+          </motion.div>
+        ))}
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          transition={{ duration: 0.6 }}
+          className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8"
         >
-          <div className="flex items-center space-x-4 mb-4">
-            <div className="p-3 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-xl">
-              <Globe className="h-8 w-8 text-white" />
-            </div>
-            <div>
-              <h1 className="text-4xl font-bold text-gray-900">
-                My <span className="gradient-text">Trips</span>
-              </h1>
-              <p className="text-gray-600 mt-1">Manage and track all your travel adventures</p>
-            </div>
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">My Trips</h1>
+            <p className="text-gray-600">Manage and track your travel adventures</p>
           </div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="mt-4 sm:mt-0"
+          >
+            <Link to="/create-trip">
+              <motion.button
+                className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-3 rounded-xl hover:from-blue-600 hover:to-purple-600 transition-all duration-300 shadow-lg flex items-center"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                animate={{
+                  boxShadow: [
+                    "0 10px 25px rgba(59, 130, 246, 0.3)",
+                    "0 20px 40px rgba(147, 51, 234, 0.4)",
+                    "0 10px 25px rgba(59, 130, 246, 0.3)"
+                  ]
+                }}
+                transition={{
+                  boxShadow: {
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }
+                }}
+              >
+                <Plus className="h-5 w-5 mr-2" />
+                Create New Trip
+              </motion.button>
+            </Link>
+          </motion.div>
         </motion.div>
 
-        {/* Stats Cards */}
+        {/* Stats */}
         <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
         >
           {stats.map((stat, index) => (
             <motion.div
               key={index}
-              variants={itemVariants}
-              className="card p-6"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.4 + index * 0.1 }}
+              className="bg-white/90 rounded-2xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-300"
+              whileHover={{ y: -5, scale: 1.02 }}
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600 mb-1">{stat.label}</p>
+                  <p className="text-sm font-medium text-gray-600">{stat.label}</p>
                   <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
                 </div>
-                <div className={`p-3 bg-gradient-to-r ${stat.color} rounded-xl`}>
+                <motion.div 
+                  className={`p-3 rounded-xl bg-gradient-to-r ${stat.color}`}
+                  whileHover={{ rotate: 360, scale: 1.1 }}
+                  transition={{ duration: 0.6 }}
+                >
                   <div className="text-white">{stat.icon}</div>
-                </div>
+                </motion.div>
               </div>
             </motion.div>
           ))}
         </motion.div>
 
         {/* Search and Filter */}
-        <div className="card p-6 mb-8">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="bg-white/90 rounded-2xl shadow-lg border border-white/20 p-6 mb-8"
+        >
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <input
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <motion.input
+                whileFocus={{ scale: 1.02 }}
+                whileHover={{ scale: 1.01 }}
                 type="text"
                 placeholder="Search trips..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:outline-none transition-colors"
+                className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-200 bg-white/80"
               />
             </div>
             <div className="flex gap-2">
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:outline-none transition-colors"
-              >
-                <option value="all">All Trips</option>
-                <option value="upcoming">Upcoming</option>
-                <option value="completed">Completed</option>
-                <option value="planning">Planning</option>
-              </select>
-              <Link
-                to="/create-trip"
-                className="flex items-center px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all duration-300"
-              >
-                <Plus className="h-5 w-5 mr-2" />
-                New Trip
-              </Link>
+              {['all', 'upcoming', 'completed', 'planning'].map((status) => (
+                <motion.button
+                  key={status}
+                  onClick={() => setFilterStatus(status)}
+                  className={`px-4 py-3 rounded-xl font-medium transition-all duration-200 ${
+                    filterStatus === status
+                      ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                </motion.button>
+              ))}
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Trips Grid */}
         <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.7 }}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
         >
           {filteredTrips.map((trip, index) => (
             <motion.div
               key={trip.id}
-              variants={itemVariants}
-              className="card overflow-hidden group hover:shadow-2xl transition-all duration-300"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.8 + index * 0.1 }}
+              className="bg-white/90 rounded-2xl shadow-lg border border-white/20 overflow-hidden hover:shadow-xl transition-all duration-300"
+              whileHover={{ y: -5, scale: 1.02 }}
             >
-              <div className="relative">
+              <div className="relative h-48">
                 <img
                   src={trip.image}
                   alt={trip.title}
-                  className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
+                  className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
-                
-                {/* Status Badge */}
-                <div className="absolute top-4 left-4">
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(trip.status)}`}>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                <div className="absolute top-4 right-4">
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(trip.status)} flex items-center`}>
                     {getStatusIcon(trip.status)}
-                    <span className="ml-1 capitalize">{trip.status}</span>
+                    <span className="ml-1">{trip.status}</span>
                   </span>
                 </div>
-
-                {/* Collaborators */}
-                <div className="absolute top-4 right-4">
-                  <div className="flex items-center bg-white/90 backdrop-blur-sm rounded-full px-3 py-1">
-                    <Users className="h-4 w-4 text-gray-600 mr-1" />
-                    <span className="text-sm font-medium text-gray-700">{trip.collaborators}</span>
-                  </div>
-                </div>
-
-                {/* Progress Bar */}
                 <div className="absolute bottom-4 left-4 right-4">
-                  <div className="flex items-center justify-between text-white mb-2">
-                    <span className="text-sm font-medium">Progress</span>
-                    <span className="text-sm">{trip.progress}%</span>
-                  </div>
-                  <div className="w-full bg-white/20 rounded-full h-2">
-                    <div 
-                      className={`h-2 rounded-full ${
-                        trip.status === 'completed' ? 'bg-success-500' : 
-                        trip.status === 'upcoming' ? 'bg-primary-500' : 'bg-accent-500'
-                      }`}
-                      style={{ width: `${trip.progress}%` }}
-                    ></div>
-                  </div>
+                  <h3 className="text-xl font-bold text-white mb-1">{trip.title}</h3>
+                  <p className="text-white/90 text-sm">{trip.destination}</p>
                 </div>
               </div>
-
+              
               <div className="p-6">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <h3 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-primary-600 transition-colors">
-                      {trip.title}
-                    </h3>
-                    <p className="text-gray-600 text-sm mb-2">{trip.destination}</p>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center text-sm text-gray-600">
+                    <Calendar className="h-4 w-4 mr-1" />
+                    {trip.dates}
                   </div>
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowDropdown(showDropdown === trip.id ? null : trip.id)}
-                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  <div className="flex items-center text-sm text-gray-600">
+                    <Users className="h-4 w-4 mr-1" />
+                    {trip.collaborators}
+                  </div>
+                </div>
+                
+                <p className="text-gray-600 mb-4 line-clamp-2">{trip.description}</p>
+                
+                <div className="flex items-center justify-between mb-4">
+                  <div className="text-lg font-bold text-gray-900">${trip.budget.toLocaleString()}</div>
+                  <div className="text-sm text-gray-600">Budget</div>
+                </div>
+                
+                <div className="mb-4">
+                  <div className="flex items-center justify-between text-sm mb-1">
+                    <span className="text-gray-600">Progress</span>
+                    <span className="text-gray-900 font-medium">{trip.progress}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <motion.div
+                      className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${trip.progress}%` }}
+                      transition={{ duration: 1, delay: 1 + index * 0.1 }}
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <Link to={`/itinerary/${trip.id}`}>
+                    <motion.button
+                      className="text-blue-600 hover:text-blue-700 font-medium flex items-center"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                     >
-                      <MoreVertical className="h-5 w-5 text-gray-400" />
-                    </button>
+                      View Details
+                      <ArrowRight className="h-4 w-4 ml-1" />
+                    </motion.button>
+                  </Link>
+                  
+                  <div className="relative">
+                    <motion.button
+                      onClick={() => setShowDropdown(showDropdown === trip.id ? null : trip.id)}
+                      className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <MoreVertical className="h-5 w-5 text-gray-600" />
+                    </motion.button>
                     
                     <AnimatePresence>
                       {showDropdown === trip.id && (
                         <motion.div
-                          initial={{ opacity: 0, scale: 0.95 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.95 }}
-                          className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-10"
+                          initial={{ opacity: 0, scale: 0.8, y: -10 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.8, y: -10 }}
+                          className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-10"
                         >
-                          <button className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                            <Edit className="h-4 w-4 mr-3" />
+                          <button className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center">
+                            <Edit className="h-4 w-4 mr-2" />
                             Edit Trip
                           </button>
-                          <button className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                            <Share2 className="h-4 w-4 mr-3" />
+                          <button className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center">
+                            <Share2 className="h-4 w-4 mr-2" />
                             Share Trip
                           </button>
-                          <button className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50">
-                            <Trash2 className="h-4 w-4 mr-3" />
+                          <button className="w-full px-4 py-2 text-left hover:bg-red-50 text-red-600 flex items-center">
+                            <Trash2 className="h-4 w-4 mr-2" />
                             Delete Trip
                           </button>
                         </motion.div>
@@ -309,57 +524,43 @@ const MyTrips: React.FC = () => {
                     </AnimatePresence>
                   </div>
                 </div>
-
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">{trip.description}</p>
-
-                <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                  <div className="flex items-center">
-                    <Calendar className="h-4 w-4 mr-1" />
-                    {trip.dates}
-                  </div>
-                  <div className="flex items-center">
-                    <span className="font-semibold text-primary-600">${trip.budget.toLocaleString()}</span>
-                  </div>
-                </div>
-
-                <Link
-                  to={`/itinerary/${trip.id}`}
-                  className="flex items-center justify-center w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all duration-300 group"
-                >
-                  <span className="font-semibold">View Details</span>
-                  <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
-                </Link>
               </div>
             </motion.div>
           ))}
         </motion.div>
 
-        {/* Empty State */}
         {filteredTrips.length === 0 && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
             className="text-center py-12"
           >
-            <div className="max-w-md mx-auto">
-              <div className="w-24 h-24 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Plane className="h-12 w-12 text-white" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">No trips found</h3>
-              <p className="text-gray-600 mb-6">
-                {searchTerm || filterStatus !== 'all' 
-                  ? 'Try adjusting your search or filter criteria.'
-                  : 'Start planning your first adventure!'
-                }
-              </p>
-              <Link
-                to="/create-trip"
-                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all duration-300"
+            <motion.div 
+              className="mx-auto w-24 h-24 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mb-6"
+              animate={{
+                y: [0, -10, 0],
+                rotate: [0, 5, 0],
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            >
+              <Plane className="h-12 w-12 text-white" />
+            </motion.div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">No trips found</h3>
+            <p className="text-gray-600 mb-6">Try adjusting your search or create a new trip</p>
+            <Link to="/create-trip">
+              <motion.button
+                className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-8 py-3 rounded-xl hover:from-blue-600 hover:to-purple-600 transition-all duration-300 shadow-lg"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                <Plus className="h-5 w-5 mr-2" />
                 Create Your First Trip
-              </Link>
-            </div>
+              </motion.button>
+            </Link>
           </motion.div>
         )}
       </div>
