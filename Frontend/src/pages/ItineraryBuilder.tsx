@@ -1,16 +1,20 @@
-import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, Reorder, AnimatePresence } from 'framer-motion';
-import { Plus, GripVertical, Clock, MapPin, Trash2, Edit3, Save, Calendar } from 'lucide-react';
+import { Plus, GripVertical, Clock, MapPin, Trash2, Edit3, Save, Calendar, ArrowRight } from 'lucide-react';
+import { api } from '../lib/api';
+import { useToast } from '../context/ToastContext';
+import ActivityForm from '../components/ActivityForm';
 
 interface Activity {
   id: string;
   title: string;
   time: string;
   location: string;
-  type: 'attraction' | 'restaurant' | 'hotel' | 'transport';
+  type: 'attraction' | 'restaurant' | 'hotel' | 'transport' | 'activity';
   duration: string;
   notes?: string;
+  cost?: number;
 }
 
 interface Day {
@@ -21,94 +25,116 @@ interface Day {
 
 const ItineraryBuilder: React.FC = () => {
   const { tripId } = useParams();
+  const navigate = useNavigate();
+  const { showToast } = useToast();
   const [selectedDay, setSelectedDay] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
+  const [tripData, setTripData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [showActivityForm, setShowActivityForm] = useState(false);
 
-  const [itinerary, setItinerary] = useState<Day[]>([
-    {
-      id: '1',
-      date: '2024-06-15',
-      activities: [
-        {
-          id: '1',
-          title: 'Arrive at Charles de Gaulle Airport',
-          time: '10:00',
-          location: 'CDG Airport, Paris',
-          type: 'transport',
-          duration: '1 hour',
-          notes: 'Flight AF123 from NYC'
-        },
-        {
-          id: '2',
-          title: 'Check-in at Hotel Le Marais',
-          time: '14:00',
-          location: '12 Rue des Archives, Paris',
-          type: 'hotel',
-          duration: '30 minutes'
-        },
-        {
-          id: '3',
-          title: 'Visit Notre-Dame Cathedral',
-          time: '16:00',
-          location: 'Île de la Cité, Paris',
-          type: 'attraction',
-          duration: '2 hours'
-        },
-        {
-          id: '4',
-          title: 'Dinner at Le Comptoir du Relais',
-          time: '19:30',
-          location: '9 Carrefour de l\'Odéon, Paris',
-          type: 'restaurant',
-          duration: '2 hours'
+  const [itinerary, setItinerary] = useState<Day[]>([]);
+
+  // Fetch trip data and generate itinerary days
+  useEffect(() => {
+    const fetchTripData = async () => {
+      if (!tripId) return;
+      
+      try {
+        setLoading(true);
+        const trip = await api.get(`/api/trips/${tripId}`) as any;
+        setTripData(trip);
+        
+        // Generate itinerary days based on trip dates
+        const startDate = new Date(trip.startDate);
+        const endDate = new Date(trip.endDate);
+        const days: Day[] = [];
+        
+        const currentDate = new Date(startDate);
+        let dayIndex = 1;
+        
+        while (currentDate <= endDate) {
+          days.push({
+            id: dayIndex.toString(),
+            date: currentDate.toISOString().split('T')[0],
+            activities: []
+          });
+          currentDate.setDate(currentDate.getDate() + 1);
+          dayIndex++;
         }
-      ]
-    },
-    {
-      id: '2',
-      date: '2024-06-16',
-      activities: [
-        {
-          id: '5',
-          title: 'Visit Louvre Museum',
-          time: '09:00',
-          location: 'Rue de Rivoli, Paris',
-          type: 'attraction',
-          duration: '4 hours'
-        },
-        {
-          id: '6',
-          title: 'Lunch at Café de Flore',
-          time: '13:30',
-          location: '172 Boulevard Saint-Germain, Paris',
-          type: 'restaurant',
-          duration: '1.5 hours'
-        },
-        {
-          id: '7',
-          title: 'Walk along Seine River',
-          time: '15:30',
-          location: 'Seine Riverbank, Paris',
-          type: 'attraction',
-          duration: '2 hours'
+        
+        setItinerary(days);
+
+        // Fetch existing itinerary data
+        try {
+          const itineraryData = await api.get(`/api/itinerary/${tripId}`) as any[];
+          console.log('Fetched itinerary data:', itineraryData);
+          console.log('Generated days:', days);
+          
+          // Debug: Check if we have any itinerary data
+          if (itineraryData.length > 0) {
+            console.log('First itinerary item date:', itineraryData[0].date);
+            console.log('First itinerary item activityId:', itineraryData[0].activityId);
+          }
+          
+          // Populate activities from database
+          const updatedDays = days.map(day => {
+            const dayActivities = itineraryData
+              .filter(item => {
+                // Convert both dates to YYYY-MM-DD format for comparison
+                const itemDate = new Date(item.date).toISOString().split('T')[0];
+                console.log(`Comparing item date: ${itemDate} with day date: ${day.date}`);
+                return itemDate === day.date;
+              })
+              .sort((a, b) => a.orderIndex - b.orderIndex)
+              .map(item => {
+                // If activityId exists, the activity data is in the populated activity
+                if (item.activityId) {
+                  return {
+                    id: item.activityId._id,
+                    title: item.activityId.name,
+                    type: item.activityId.type,
+                    time: '12:00', // Default time since it's not stored in Activity model
+                    location: item.activityId.cityId?.name || 'Unknown Location',
+                    duration: `${item.activityId.duration} minutes`,
+                    notes: item.notes || item.activityId.description,
+                    cost: item.activityId.cost
+                  };
+                } else {
+                  // Fallback for legacy data stored in notes
+                  try {
+                    return JSON.parse(item.notes);
+                  } catch (error) {
+                    console.error('Error parsing activity data:', error);
+                    return null;
+                  }
+                }
+              })
+              .filter(activity => activity !== null);
+            
+            return {
+              ...day,
+              activities: dayActivities
+            };
+          });
+          
+          console.log('Updated days with activities:', updatedDays);
+          setItinerary(updatedDays);
+        } catch (error) {
+          console.error('Error fetching itinerary data:', error);
+          // Continue with empty activities if fetch fails
         }
-      ]
-    },
-    {
-      id: '3',
-      date: '2024-06-17',
-      activities: [
-        {
-          id: '8',
-          title: 'Visit Eiffel Tower',
-          time: '10:00',
-          location: 'Champ de Mars, Paris',
-          type: 'attraction',
-          duration: '3 hours'
-        }
-      ]
-    }
-  ]);
+      } catch (error) {
+        console.error('Error fetching trip data:', error);
+        showToast('error', 'Error', 'Failed to load trip data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTripData();
+  }, [tripId, showToast]);
 
   const getActivityIcon = (type: string) => {
     switch (type) {
@@ -116,6 +142,7 @@ const ItineraryBuilder: React.FC = () => {
       case 'restaurant': return '🍽️';
       case 'hotel': return '🏨';
       case 'transport': return '✈️';
+      case 'activity': return '🎯';
       default: return '📍';
     }
   };
@@ -126,36 +153,150 @@ const ItineraryBuilder: React.FC = () => {
       case 'restaurant': return 'bg-orange-100 border-orange-200';
       case 'hotel': return 'bg-purple-100 border-purple-200';
       case 'transport': return 'bg-green-100 border-green-200';
+      case 'activity': return 'bg-red-100 border-red-200';
       default: return 'bg-gray-100 border-gray-200';
     }
   };
 
   const updateActivities = (dayIndex: number, newActivities: Activity[]) => {
-    setItinerary(prev => prev.map((day, index) => 
-      index === dayIndex ? { ...day, activities: newActivities } : day
-    ));
+    console.log('Updating activities for day:', dayIndex);
+    console.log('New activities:', newActivities);
+    
+    setItinerary(prev => {
+      console.log('Previous itinerary state:', prev);
+      const updated = prev.map((day, index) => 
+        index === dayIndex ? { ...day, activities: newActivities } : day
+      );
+      console.log('Updated itinerary:', updated);
+      console.log('Activities for selected day after update:', updated[dayIndex]?.activities);
+      return updated;
+    });
   };
 
   const addActivity = () => {
-    const newActivity: Activity = {
-      id: Date.now().toString(),
-      title: 'New Activity',
-      time: '12:00',
-      location: 'Location',
-      type: 'attraction',
-      duration: '1 hour'
-    };
-    
-    const updatedActivities = [...itinerary[selectedDay].activities, newActivity];
-    updateActivities(selectedDay, updatedActivities);
+    setShowActivityForm(true);
   };
 
-  const removeActivity = (activityId: string) => {
-    const updatedActivities = itinerary[selectedDay].activities.filter(
-      activity => activity.id !== activityId
-    );
-    updateActivities(selectedDay, updatedActivities);
+  const handleActivitySave = async (activityData: Activity) => {
+    console.log('Saving activity:', activityData);
+    console.log('Selected day:', selectedDay);
+    console.log('Current itinerary:', itinerary);
+    
+    if (selectedDay >= 0 && selectedDay < itinerary.length) {
+      try {
+        // First, create the activity in the Activity table
+        const activityResponse = await api.post('/api/activities', {
+          cityId: '507f1f77bcf86cd799439011', // Default city ID - should be dynamic based on trip destination
+          name: activityData.title,
+          type: activityData.type,
+          cost: activityData.cost || 0,
+          duration: parseInt(activityData.duration) || 60,
+          description: activityData.notes || '',
+          imageUrl: ''
+        }) as any;
+
+        // Then, create the itinerary entry linking to the activity
+        await api.post('/api/itinerary', {
+          tripId,
+          cityId: '507f1f77bcf86cd799439011', // Default city ID
+          date: itinerary[selectedDay].date,
+          activityId: activityResponse._id,
+          orderIndex: itinerary[selectedDay].activities.length,
+          notes: activityData.notes || ''
+        });
+
+        // Update local state with the activity data
+        const updatedActivities = [...itinerary[selectedDay].activities, activityData];
+        updateActivities(selectedDay, updatedActivities);
+        console.log('Activity saved successfully to database');
+        setShowActivityForm(false); // Close the modal after saving
+        showToast('success', 'Activity Added!', 'Activity has been added to your itinerary.');
+      } catch (error) {
+        console.error('Error saving activity to database:', error);
+        showToast('error', 'Error', 'Failed to save activity to database');
+      }
+    } else {
+      console.error('Invalid selected day:', selectedDay);
+      showToast('error', 'Error', 'Failed to add activity - invalid day selected');
+    }
   };
+
+  const removeActivity = async (activityId: string) => {
+    try {
+      // Find the activity in the current day's activities
+      const activityIndex = itinerary[selectedDay].activities.findIndex(
+        activity => activity.id === activityId
+      );
+      
+      if (activityIndex !== -1) {
+        // Get the itinerary item from database to delete
+        const itineraryData = await api.get(`/api/itinerary/${tripId}`) as any[];
+        const dayActivities = itineraryData.filter(item => item.date === itinerary[selectedDay].date);
+        
+        if (dayActivities[activityIndex]) {
+          // Delete from database
+          await api.delete(`/api/itinerary/${dayActivities[activityIndex]._id}`);
+        }
+        
+        // Update local state
+        const updatedActivities = itinerary[selectedDay].activities.filter(
+          activity => activity.id !== activityId
+        );
+        updateActivities(selectedDay, updatedActivities);
+        showToast('success', 'Activity Removed', 'Activity has been removed from your itinerary.');
+      }
+    } catch (error) {
+      console.error('Error removing activity:', error);
+      showToast('error', 'Error', 'Failed to remove activity');
+    }
+  };
+
+  const saveItinerary = async () => {
+    if (!tripId) return;
+    
+    try {
+      setSaving(true);
+      
+      // Since activities are now saved immediately when added,
+      // this function just confirms the save operation
+      showToast('success', 'Itinerary Saved!', 'Your itinerary has been saved successfully.');
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error saving itinerary:', error);
+      showToast('error', 'Error', 'Failed to save itinerary');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading trip data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!tripData) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600 mb-4">Trip not found</p>
+          <Link to="/my-trips" className="text-blue-600 hover:text-blue-700">
+            Back to My Trips
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Debug logging
+  console.log('Current itinerary state:', itinerary);
+  console.log('Selected day:', selectedDay);
+  console.log('Activities for selected day:', itinerary[selectedDay]?.activities);
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -168,20 +309,53 @@ const ItineraryBuilder: React.FC = () => {
         >
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Itinerary Builder</h1>
-            <p className="text-gray-600">Drag and drop to organize your perfect trip</p>
+            <p className="text-gray-600">
+              {tripData.title} - {tripData.destination}
+            </p>
+            <p className="text-sm text-gray-500">
+              {new Date(tripData.startDate).toLocaleDateString()} - {new Date(tripData.endDate).toLocaleDateString()}
+            </p>
           </div>
           <div className="flex items-center space-x-4">
-            <button
-              onClick={() => setIsEditing(!isEditing)}
-              className={`flex items-center px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
-                isEditing 
-                  ? 'bg-green-600 text-white hover:bg-green-700' 
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
-              }`}
+            {isEditing ? (
+              <>
+                <motion.button
+                  onClick={saveItinerary}
+                  disabled={saving}
+                  className="flex items-center px-4 py-2 rounded-lg font-medium transition-colors duration-200 bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  {saving ? 'Saving...' : 'Save Itinerary'}
+                </motion.button>
+                <motion.button
+                  onClick={() => setIsEditing(false)}
+                  className="flex items-center px-4 py-2 rounded-lg font-medium transition-colors duration-200 bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Cancel
+                </motion.button>
+              </>
+            ) : (
+              <motion.button
+                onClick={() => setIsEditing(true)}
+                className="flex items-center px-4 py-2 rounded-lg font-medium transition-colors duration-200 bg-blue-600 text-white hover:bg-blue-700"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Edit3 className="h-4 w-4 mr-2" />
+                Edit Mode
+              </motion.button>
+            )}
+            <Link
+              to={`/trip-calendar/${tripId}`}
+              className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors duration-200 flex items-center"
             >
-              {isEditing ? <Save className="h-4 w-4 mr-2" /> : <Edit3 className="h-4 w-4 mr-2" />}
-              {isEditing ? 'Save Changes' : 'Edit Mode'}
-            </button>
+              <Calendar className="h-4 w-4 mr-2" />
+              View Calendar
+            </Link>
             <Link
               to={`/itinerary/${tripId}`}
               className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors duration-200"
@@ -394,6 +568,15 @@ const ItineraryBuilder: React.FC = () => {
           </Link>
         </motion.div>
       </div>
+
+      {/* Activity Form Modal */}
+      <ActivityForm
+        isOpen={showActivityForm}
+        onClose={() => setShowActivityForm(false)}
+        onSave={handleActivitySave}
+        dayDate={itinerary[selectedDay]?.date || ''}
+        tripId={tripId || ''}
+      />
     </div>
   );
 };

@@ -7,6 +7,7 @@ const itinerarySchema = new mongoose.Schema(
     date: { type: Date, required: true },
     activityId: { type: mongoose.Schema.Types.ObjectId, ref: 'Activity' },
     orderIndex: { type: Number, required: true, default: 0 },
+    notes: { type: String }, // Additional notes for the itinerary item
   },
   { timestamps: false }
 );

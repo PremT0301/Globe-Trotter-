@@ -29,6 +29,8 @@ const CreateTrip: React.FC = () => {
     { number: 3, title: 'Preferences', icon: <Users className="h-5 w-5" />, color: 'from-green-500 to-teal-500' }
   ];
 
+
+
   const popularDestinations = [
     {
       name: 'Paris, France',
@@ -110,9 +112,17 @@ const CreateTrip: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
-    showToast('success', 'Trip Created!', 'Your trip has been successfully created.');
-    navigate('/my-trips');
+    setIsSubmitting(true);
+    try {
+      const response = await api.post('/api/trips', formData) as any;
+      showToast('success', 'Trip Created!', 'Your trip has been successfully created.');
+      navigate(`/itinerary-builder/${response._id}`);
+    } catch (error) {
+      console.error('Error creating trip:', error);
+      showToast('error', 'Error', 'Failed to create trip. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Enhanced background particles with more variety
@@ -145,8 +155,8 @@ const CreateTrip: React.FC = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-8"
         >
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Create Your Trip</h1>
-          <p className="text-gray-600">Plan your next adventure step by step</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Create New Trip</h1>
+          <p className="text-gray-600">Plan your next adventure with ease</p>
         </motion.div>
 
         {/* Progress Steps */}
@@ -156,14 +166,14 @@ const CreateTrip: React.FC = () => {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="mb-8"
         >
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-center space-x-2">
             {steps.map((step, index) => (
               <div key={step.number} className="flex items-center">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
-                  className={`flex items-center justify-center w-12 h-12 rounded-full ${
+                  className={`flex items-center justify-center w-10 h-10 rounded-full ${
                     currentStep >= step.number
                       ? `bg-gradient-to-r ${step.color} text-white`
                       : 'bg-gray-200 text-gray-500'
@@ -174,14 +184,14 @@ const CreateTrip: React.FC = () => {
                   {step.icon}
                 </motion.div>
                 {index < steps.length - 1 && (
-                  <div className={`w-16 h-1 mx-4 ${
+                  <div className={`w-8 h-1 mx-2 ${
                     currentStep > step.number ? 'bg-gradient-to-r from-blue-500 to-purple-500' : 'bg-gray-200'
                   } transition-all duration-300`} />
                 )}
               </div>
             ))}
           </div>
-          <div className="flex justify-between mt-4">
+          <div className="flex justify-center space-x-8 mt-2">
             {steps.map((step) => (
               <span
                 key={step.number}
@@ -321,17 +331,17 @@ const CreateTrip: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Budget</label>
-                    <motion.input
-                      whileFocus={{ scale: 1.02 }}
-                      whileHover={{ scale: 1.01 }}
-                      type="text"
-                      name="budget"
-                      value={formData.budget}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-200 bg-white/80"
-                      placeholder="e.g., $2000"
-                    />
+                                         <label className="block text-sm font-semibold text-gray-700 mb-2">Budget (₹)</label>
+                     <motion.input
+                       whileFocus={{ scale: 1.02 }}
+                       whileHover={{ scale: 1.01 }}
+                       type="number"
+                       name="budget"
+                       value={formData.budget}
+                       onChange={handleInputChange}
+                       placeholder="Enter your budget in INR"
+                       className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-200 bg-white/80"
+                     />
                   </div>
                 </div>
 
