@@ -1,80 +1,76 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Plus, MapPin, Calendar, Users, TrendingUp, Clock, Star, Plane, Heart, Zap, Compass } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { api } from '../lib/api';
+
+interface DashboardStats {
+  totalTrips: number;
+  countriesVisited: number;
+  upcomingTrips: number;
+  travelDays: number;
+}
+
+interface RecentTrip {
+  id: string;
+  title: string;
+  destination: string;
+  dates: string;
+  image: string;
+  status: 'planning' | 'ongoing' | 'upcoming' | 'completed';
+  collaborators: number;
+  progress: number;
+}
+
+interface PopularDestination {
+  name: string;
+  image: string;
+  rating: string;
+  trips: number;
+  price: string;
+}
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const [stats, setStats] = useState<DashboardStats>({
+    totalTrips: 0,
+    countriesVisited: 0,
+    upcomingTrips: 0,
+    travelDays: 0
+  });
+  const [recentTrips, setRecentTrips] = useState<RecentTrip[]>([]);
+  const [popularDestinations, setPopularDestinations] = useState<PopularDestination[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const recentTrips = [
-    {
-      id: '1',
-      title: 'European Adventure',
-      destination: 'Paris, Rome, Barcelona',
-      dates: 'Jun 15 - Jun 30, 2024',
-      image: 'https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
-      status: 'upcoming',
-      collaborators: 3,
-      progress: 75
-    },
-    {
-      id: '2',
-      title: 'Tokyo Explorer',
-      destination: 'Tokyo, Japan',
-      dates: 'Mar 10 - Mar 20, 2024',
-      image: 'https://images.pexels.com/photos/2506923/pexels-photo-2506923.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
-      status: 'completed',
-      collaborators: 1,
-      progress: 100
-    },
-    {
-      id: '3',
-      title: 'Bali Retreat',
-      destination: 'Bali, Indonesia',
-      dates: 'Aug 5 - Aug 15, 2024',
-      image: 'https://images.pexels.com/photos/1320684/pexels-photo-1320684.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
-      status: 'planning',
-      collaborators: 2,
-      progress: 25
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await api.get('/dashboard') as any;
+      const data = response.data;
+      
+      setStats(data.stats);
+      setRecentTrips(data.recentTrips);
+      setPopularDestinations(data.popularDestinations);
+    } catch (err) {
+      console.error('Failed to fetch dashboard data:', err);
+      setError('Failed to load dashboard data');
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
-  const popularDestinations = [
-    {
-      name: 'Santorini, Greece',
-      image: 'https://images.pexels.com/photos/161901/santorini-greece-island-161901.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&dpr=1',
-      rating: 4.9,
-      trips: 1234,
-      price: '$1,200'
-    },
-    {
-      name: 'Kyoto, Japan',
-      image: 'https://images.pexels.com/photos/2070033/pexels-photo-2070033.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&dpr=1',
-      rating: 4.8,
-      trips: 987,
-      price: '$1,500'
-    },
-    {
-      name: 'Machu Picchu, Peru',
-      image: 'https://images.pexels.com/photos/259967/pexels-photo-259967.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&dpr=1',
-      rating: 4.9,
-      trips: 756,
-      price: '$800'
-    },
-    {
-      name: 'Iceland',
-      image: 'https://images.pexels.com/photos/1433052/pexels-photo-1433052.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&dpr=1',
-      rating: 4.7,
-      trips: 654,
-      price: '$2,100'
-    }
-  ];
-
-  const stats = [
+  const statsCards = [
     { 
       label: 'Total Trips', 
-      value: '12', 
+      value: stats.totalTrips.toString(), 
       icon: <MapPin className="h-6 w-6" />, 
       color: 'from-primary-500 to-primary-600',
       bgColor: 'bg-primary-50',
@@ -82,7 +78,7 @@ const Dashboard: React.FC = () => {
     },
     { 
       label: 'Countries Visited', 
-      value: '8', 
+      value: stats.countriesVisited.toString(), 
       icon: <TrendingUp className="h-6 w-6" />, 
       color: 'from-success-500 to-success-600',
       bgColor: 'bg-success-50',
@@ -90,7 +86,7 @@ const Dashboard: React.FC = () => {
     },
     { 
       label: 'Upcoming Trips', 
-      value: '3', 
+      value: stats.upcomingTrips.toString(), 
       icon: <Calendar className="h-6 w-6" />, 
       color: 'from-secondary-500 to-secondary-600',
       bgColor: 'bg-secondary-50',
@@ -98,7 +94,7 @@ const Dashboard: React.FC = () => {
     },
     { 
       label: 'Travel Days', 
-      value: '89', 
+      value: stats.travelDays.toString(), 
       icon: <Clock className="h-6 w-6" />, 
       color: 'from-accent-500 to-accent-600',
       bgColor: 'bg-accent-50',
@@ -120,6 +116,33 @@ const Dashboard: React.FC = () => {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-bright-blue via-bright-purple to-bright-pink py-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          <p className="text-white text-lg">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-bright-blue via-bright-purple to-bright-pink py-8 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-white text-lg mb-4">{error}</p>
+          <button 
+            onClick={fetchDashboardData}
+            className="bg-white text-primary-600 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-bright-blue via-bright-purple to-bright-pink py-8 overflow-hidden">
@@ -157,7 +180,7 @@ const Dashboard: React.FC = () => {
           animate="visible"
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
         >
-          {stats.map((stat, index) => (
+          {statsCards.map((stat, index) => (
             <motion.div
               key={index}
               variants={itemVariants}
@@ -244,56 +267,68 @@ const Dashboard: React.FC = () => {
               </div>
               
               <div className="space-y-4">
-                {recentTrips.map((trip, index) => (
-                  <motion.div
-                    key={trip.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 + index * 0.1 }}
-                    className="group"
-                  >
-                    <Link to={`/itinerary/${trip.id}`}>
-                      <div className="flex items-center space-x-4 p-4 rounded-xl hover:bg-gray-50 transition-all duration-300">
-                        <div className="relative">
-                          <img
-                            src={trip.image}
-                            alt={trip.title}
-                            className="w-16 h-16 object-cover rounded-lg group-hover:scale-105 transition-transform duration-300"
-                          />
-                          <div className="absolute -top-1 -right-1 bg-white rounded-full p-1 shadow-sm">
-                            <Users className="h-3 w-3 text-primary-600" />
-                          </div>
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">
-                            {trip.title}
-                          </h3>
-                          <p className="text-sm text-gray-600">{trip.destination}</p>
-                          <p className="text-xs text-gray-500">{trip.dates}</p>
-                          <div className="flex items-center mt-2">
-                            <div className="flex-1 bg-gray-200 rounded-full h-2 mr-2">
-                              <div 
-                                className={`h-2 rounded-full ${
-                                  trip.status === 'completed' ? 'bg-success-500' : 
-                                  trip.status === 'upcoming' ? 'bg-primary-500' : 'bg-accent-500'
-                                }`}
-                                style={{ width: `${trip.progress}%` }}
-                              ></div>
+                {recentTrips.length > 0 ? (
+                  recentTrips.map((trip, index) => (
+                    <motion.div
+                      key={trip.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4 + index * 0.1 }}
+                      className="group"
+                    >
+                      <Link to={`/itinerary/${trip.id}`}>
+                        <div className="flex items-center space-x-4 p-4 rounded-xl hover:bg-gray-50 transition-all duration-300">
+                          <div className="relative">
+                            <img
+                              src={trip.image}
+                              alt={trip.title}
+                              className="w-16 h-16 object-cover rounded-lg group-hover:scale-105 transition-transform duration-300"
+                            />
+                            <div className="absolute -top-1 -right-1 bg-white rounded-full p-1 shadow-sm">
+                              <Users className="h-3 w-3 text-primary-600" />
                             </div>
-                            <span className="text-xs text-gray-500">{trip.progress}%</span>
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-gray-900 group-hover:text-primary-600 transition-colors">
+                              {trip.title}
+                            </h3>
+                            <p className="text-sm text-gray-600">{trip.destination}</p>
+                            <p className="text-xs text-gray-500">{trip.dates}</p>
+                            <div className="flex items-center mt-2">
+                              <div className="flex-1 bg-gray-200 rounded-full h-2 mr-2">
+                                <div 
+                                  className={`h-2 rounded-full ${
+                                    trip.status === 'completed' ? 'bg-success-500' : 
+                                    trip.status === 'upcoming' ? 'bg-primary-500' : 
+                                    trip.status === 'ongoing' ? 'bg-secondary-500' : 'bg-accent-500'
+                                  }`}
+                                  style={{ width: `${trip.progress}%` }}
+                                ></div>
+                              </div>
+                              <span className="text-xs text-gray-500">{trip.progress}%</span>
+                            </div>
+                          </div>
+                          <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            trip.status === 'completed' ? 'bg-success-100 text-success-700' :
+                            trip.status === 'upcoming' ? 'bg-primary-100 text-primary-700' :
+                            trip.status === 'ongoing' ? 'bg-secondary-100 text-secondary-700' :
+                            'bg-accent-100 text-accent-700'
+                          }`}>
+                            {trip.status}
                           </div>
                         </div>
-                        <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          trip.status === 'completed' ? 'bg-success-100 text-success-700' :
-                          trip.status === 'upcoming' ? 'bg-primary-100 text-primary-700' :
-                          'bg-accent-100 text-accent-700'
-                        }`}>
-                          {trip.status}
-                        </div>
-                      </div>
+                      </Link>
+                    </motion.div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <Plane className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500 mb-4">No trips yet</p>
+                    <Link to="/create-trip" className="btn-primary">
+                      Create Your First Trip
                     </Link>
-                  </motion.div>
-                ))}
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>

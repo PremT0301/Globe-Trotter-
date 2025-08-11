@@ -9,6 +9,7 @@ const itineraryRoutes = require('./routes/itinerary');
 const budgetRoutes = require('./routes/budgets');
 const sharedRoutes = require('./routes/shared');
 const adminRoutes = require('./routes/admin');
+const dashboardRoutes = require('./routes/dashboard');
 const { connectToDatabase } = require('./lib/mongoose');
 
 dotenv.config();
@@ -35,6 +36,7 @@ app.use('/api/itinerary', itineraryRoutes);
 app.use('/api/budgets', budgetRoutes);
 app.use('/api/shared', sharedRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 const PORT = process.env.PORT || 4000;
 

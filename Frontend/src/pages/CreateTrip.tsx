@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Calendar, Users, DollarSign, Camera, ArrowRight, ArrowLeft, Plane, Heart, Globe, Zap } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
+import { api } from '../lib/api';
 
 const CreateTrip: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -14,9 +15,11 @@ const CreateTrip: React.FC = () => {
     travelers: 1,
     budget: '',
     description: '',
+    tripType: 'Adventure' as 'Adventure' | 'Romantic' | 'Cultural' | 'Relaxation',
     image: null as File | null
   });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const { showToast } = useToast();
 
@@ -105,12 +108,56 @@ const CreateTrip: React.FC = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, this would save the trip data
-    console.log('Trip data:', formData);
-    showToast('success', 'Trip created!', 'Your new trip has been created successfully.');
-    navigate('/my-trips');
+    
+    // Validation
+    if (!formData.title || !formData.destination || !formData.startDate || !formData.endDate) {
+      showToast('error', 'Missing Information', 'Please fill in all required fields.');
+      return;
+    }
+
+    if (new Date(formData.startDate) >= new Date(formData.endDate)) {
+      showToast('error', 'Invalid Dates', 'End date must be after start date.');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Convert image to base64 if present
+      let coverPhoto = null;
+      if (formData.image) {
+        const reader = new FileReader();
+        coverPhoto = await new Promise<string>((resolve) => {
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(formData.image!);
+        });
+      }
+
+      const tripData = {
+        title: formData.title,
+        destination: formData.destination,
+        description: formData.description,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        travelers: formData.travelers,
+        budget: formData.budget ? parseFloat(formData.budget) : undefined,
+        tripType: formData.tripType,
+        coverPhoto
+      };
+
+      await api.post('/trips', tripData);
+      
+      showToast('success', 'Trip Created!', 'Your new trip has been created successfully.');
+      navigate('/my-trips');
+    } catch (error: any) {
+      console.error('Error creating trip:', error);
+      const errorMessage = error.message || 'Failed to create trip. Please try again.';
+      showToast('error', 'Error', errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const stepVariants = {
@@ -324,7 +371,12 @@ const CreateTrip: React.FC = () => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.1 }}
-                            className="p-4 border-2 border-gray-200 rounded-xl hover:border-primary-500 cursor-pointer transition-all duration-300 group"
+                            onClick={() => setFormData(prev => ({ ...prev, tripType: type.title as any }))}
+                            className={`p-4 border-2 rounded-xl cursor-pointer transition-all duration-300 group ${
+                              formData.tripType === type.title 
+                                ? 'border-primary-500 bg-primary-50' 
+                                : 'border-gray-200 hover:border-primary-500'
+                            }`}
                           >
                             <div className={`inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r ${type.color} rounded-lg mb-3 group-hover:scale-110 transition-transform duration-300`}>
                               <div className="text-white">{type.icon}</div>
@@ -385,9 +437,10 @@ const CreateTrip: React.FC = () => {
                 ) : (
                   <button
                     onClick={handleSubmit}
-                    className="flex items-center px-6 py-3 bg-gradient-to-r from-success-500 to-success-600 text-white rounded-xl hover:from-success-600 hover:to-success-700 transition-all duration-300"
+                    disabled={isSubmitting}
+                    className="flex items-center px-6 py-3 bg-gradient-to-r from-success-500 to-success-600 text-white rounded-xl hover:from-success-600 hover:to-success-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Create Trip
+                    {isSubmitting ? 'Creating...' : 'Create Trip'}
                     <Plane className="h-4 w-4 ml-2" />
                   </button>
                 )}

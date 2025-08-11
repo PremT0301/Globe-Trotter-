@@ -4,7 +4,7 @@ const activitySchema = new mongoose.Schema(
   {
     cityId: { type: mongoose.Schema.Types.ObjectId, ref: 'City', required: true, index: true },
     name: { type: String, required: true },
-    type: { type: String, required: true },
+    activityType: { type: String, required: true },
     cost: { type: Number },
     duration: { type: Number },
     description: { type: String },

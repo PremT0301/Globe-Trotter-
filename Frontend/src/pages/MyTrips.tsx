@@ -1,87 +1,51 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Search, Filter, Calendar, MapPin, Users, MoreVertical, Edit, Trash2, Share2, Plane, Heart, Globe, Zap, ArrowRight } from 'lucide-react';
+import { api } from '../lib/api';
 
 const MyTrips: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [showDropdown, setShowDropdown] = useState<string | null>(null);
+  const [trips, setTrips] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const trips = [
-    {
-      id: '1',
-      title: 'European Adventure',
-      destination: 'Paris, Rome, Barcelona',
-      dates: 'Jun 15 - Jun 30, 2024',
-      image: 'https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
-      status: 'upcoming',
-      collaborators: 3,
-      budget: 3500,
-      description: 'A wonderful journey through Europe\'s most beautiful cities.',
-      progress: 75
-    },
-    {
-      id: '2',
-      title: 'Tokyo Explorer',
-      destination: 'Tokyo, Japan',
-      dates: 'Mar 10 - Mar 20, 2024',
-      image: 'https://images.pexels.com/photos/2506923/pexels-photo-2506923.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
-      status: 'completed',
-      collaborators: 1,
-      budget: 2800,
-      description: 'Exploring the vibrant culture and cuisine of Tokyo.',
-      progress: 100
-    },
-    {
-      id: '3',
-      title: 'Bali Retreat',
-      destination: 'Bali, Indonesia',
-      dates: 'Aug 5 - Aug 15, 2024',
-      image: 'https://images.pexels.com/photos/1320684/pexels-photo-1320684.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
-      status: 'planning',
-      collaborators: 2,
-      budget: 2200,
-      description: 'A relaxing retreat in the tropical paradise of Bali.',
-      progress: 25
-    },
-    {
-      id: '4',
-      title: 'New York City',
-      destination: 'New York, USA',
-      dates: 'Dec 20 - Dec 27, 2024',
-      image: 'https://images.pexels.com/photos/290386/pexels-photo-290386.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
-      status: 'upcoming',
-      collaborators: 4,
-      budget: 4000,
-      description: 'Holiday season in the Big Apple with friends.',
-      progress: 60
-    },
-    {
-      id: '5',
-      title: 'Safari Adventure',
-      destination: 'Kenya & Tanzania',
-      dates: 'Sep 10 - Sep 25, 2024',
-      image: 'https://images.pexels.com/photos/631317/pexels-photo-631317.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
-      status: 'planning',
-      collaborators: 2,
-      budget: 5500,
-      description: 'Wildlife safari across East Africa.',
-      progress: 15
-    },
-    {
-      id: '6',
-      title: 'Mediterranean Cruise',
-      destination: 'Italy, Greece, Turkey',
-      dates: 'May 1 - May 14, 2024',
-      image: 'https://images.pexels.com/photos/161901/santorini-greece-island-161901.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
-      status: 'completed',
-      collaborators: 6,
-      budget: 3200,
-      description: 'Luxury cruise through the Mediterranean.',
-      progress: 100
+  useEffect(() => {
+    fetchTrips();
+  }, []);
+
+  const fetchTrips = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await api.get('/trips');
+      // Map backend fields to frontend format
+      const mapped = response.map((trip: any) => ({
+        id: trip._id,
+        title: trip.title,
+        destination: trip.destination,
+        dates: `${formatDate(trip.startDate)} - ${formatDate(trip.endDate)}`,
+        image: trip.coverPhoto || 'https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
+        status: trip.status || 'planning',
+        collaborators: 1, // Placeholder, update if you have collaborators
+        budget: trip.budget || 0,
+        description: trip.description || '',
+        progress: 0 // Placeholder, update if you have progress logic
+      }));
+      setTrips(mapped);
+    } catch (err: any) {
+      setError('Failed to load trips');
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  };
 
   const filteredTrips = trips.filter(trip => {
     const matchesSearch = trip.title.toLowerCase().includes(searchTerm.toLowerCase()) ||

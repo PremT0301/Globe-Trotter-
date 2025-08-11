@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "build": "echo build step not needed",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "seed": "node seed-data.js"
   },
   "keywords": [],
   "author": "",
