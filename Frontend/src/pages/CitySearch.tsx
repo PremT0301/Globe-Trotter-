@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Filter, Star, MapPin, Users, Clock, Heart, ExternalLink } from 'lucide-react';
+import { api } from '../lib/api';
 
 const CitySearch: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -8,13 +9,19 @@ const CitySearch: React.FC = () => {
   const [selectedCity, setSelectedCity] = useState('paris');
   const [favorites, setFavorites] = useState<string[]>([]);
 
-  const cities = [
-    { id: 'paris', name: 'Paris', country: 'France' },
-    { id: 'tokyo', name: 'Tokyo', country: 'Japan' },
-    { id: 'rome', name: 'Rome', country: 'Italy' },
-    { id: 'barcelona', name: 'Barcelona', country: 'Spain' },
-    { id: 'london', name: 'London', country: 'UK' }
-  ];
+  const [cities, setCities] = useState<{ id: number; name: string; country: string }[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await api.get<{ id: number; name: string; country: string }[]>('/api/cities');
+        setCities(data);
+        if (data.length > 0) setSelectedCity(data[0].name.toLowerCase());
+      } catch (e) {
+        // no-op for now
+      }
+    })();
+  }, []);
 
   const categories = [
     { id: 'all', name: 'All', icon: '🌟' },
@@ -149,9 +156,9 @@ const CitySearch: React.FC = () => {
             {cities.map((city) => (
               <button
                 key={city.id}
-                onClick={() => setSelectedCity(city.id)}
+                onClick={() => setSelectedCity(city.name.toLowerCase())}
                 className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                  selectedCity === city.id
+                  selectedCity === city.name.toLowerCase()
                     ? 'bg-blue-600 text-white'
                     : 'bg-white text-gray-700 hover:bg-gray-100'
                 }`}
