@@ -111,7 +111,7 @@ const MyTrips: React.FC = () => {
 
   const handleShareTrip = async (tripId: string) => {
     try {
-      const response = await api.post(`/api/shared/${tripId}`);
+      const response = await api.post(`/api/shared/${tripId}`) as any;
       const shareUrl = response.shareUrl;
       
       // Copy to clipboard
@@ -125,6 +125,8 @@ const MyTrips: React.FC = () => {
       showToast('error', 'Error', 'Failed to share trip');
     }
   };
+
+
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -221,16 +223,20 @@ const MyTrips: React.FC = () => {
                 </div>
                 
                 <div className="flex items-center justify-between">
-                  <Link to={`/itinerary/${trip.id}`}>
-                    <motion.button
-                      className="text-blue-600 hover:text-blue-700 font-medium flex items-center"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      View Details
-                      <ArrowRight className="h-4 w-4 ml-1" />
-                    </motion.button>
-                  </Link>
+                  <div className="flex items-center space-x-3">
+                    <Link to={`/itinerary/${trip.id}`}>
+                      <motion.button
+                        className="text-blue-600 hover:text-blue-700 font-medium flex items-center"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        View Details
+                        <ArrowRight className="h-4 w-4 ml-1" />
+                      </motion.button>
+                    </Link>
+                    
+                    
+                  </div>
                   
                   <div className="relative">
                     <motion.button
@@ -272,6 +278,7 @@ const MyTrips: React.FC = () => {
                     <Share2 className="h-4 w-4 mr-2" />
                     Share Trip
                   </button>
+                  
                   <button 
                     onClick={() => handleDeleteTrip(trip.id)}
                     className="w-full px-4 py-2 text-left hover:bg-red-50 text-red-600 flex items-center"
