@@ -29,7 +29,7 @@ function App() {
       <ToastProvider>
         <AuthProvider>
           <Router>
-            <div className="min-h-screen bg-gray-50">
+            <div className="min-h-screen bg-gradient-to-br from-bright-blue via-bright-purple to-bright-pink">
               <AnimatePresence mode="wait">
                 <Routes>
                   <Route path="/" element={<LandingPage />} />
