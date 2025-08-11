@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { useToast } from './ToastContext';
 
 interface User {
   id: string;
@@ -6,6 +7,15 @@ interface User {
   email: string;
   avatar?: string;
   isAdmin?: boolean;
+  phone?: string;
+  location?: string;
+  bio?: string;
+  dateOfBirth?: string;
+  preferences?: {
+    notifications: boolean;
+    emailUpdates: boolean;
+    publicProfile: boolean;
+  };
 }
 
 interface AuthContextType {
@@ -13,6 +23,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
+  updateUser: (updatedUser: User) => void;
   isAuthenticated: boolean;
 }
 
@@ -28,6 +39,7 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const { showToast } = useToast();
 
   const login = async (email: string, password: string) => {
     // Mock login - in real app, this would call an API
@@ -54,6 +66,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const logout = () => {
     setUser(null);
+    showToast('info', 'Logged out', 'You have been successfully logged out.');
+  };
+
+  const updateUser = (updatedUser: User) => {
+    setUser(updatedUser);
   };
 
   const value = {
@@ -61,6 +78,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     login,
     signup,
     logout,
+    updateUser,
     isAuthenticated: !!user
   };
 

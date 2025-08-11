@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Globe, Menu, X, User, LogOut, Settings, MapPin } from 'lucide-react';
+import LoadingSpinner from './LoadingSpinner';
 import { useAuth } from '../context/AuthContext';
 
 const Navbar: React.FC = () => {

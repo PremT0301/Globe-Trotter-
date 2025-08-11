@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Globe, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import LoadingSpinner from '../components/LoadingSpinner';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -12,6 +14,7 @@ const LoginPage: React.FC = () => {
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   
   const { login } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
 
   const validateForm = () => {
@@ -41,9 +44,11 @@ const LoginPage: React.FC = () => {
     setIsLoading(true);
     try {
       await login(email, password);
+      showToast('success', 'Welcome back!', 'Successfully logged in.');
       navigate('/dashboard');
     } catch (error) {
       setErrors({ email: 'Invalid email or password' });
+      showToast('error', 'Login failed', 'Please check your credentials and try again.');
     } finally {
       setIsLoading(false);
     }
@@ -171,9 +176,9 @@ const LoginPage: React.FC = () => {
             </div>
 
             <div className="text-sm">
-              <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
+              <Link to="/forgot-password" className="font-medium text-blue-600 hover:text-blue-500">
                 Forgot your password?
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -185,7 +190,7 @@ const LoginPage: React.FC = () => {
             className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
           >
             {isLoading ? (
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              <LoadingSpinner size="sm" color="white" />
             ) : (
               'Sign in'
             )}

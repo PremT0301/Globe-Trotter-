@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { DollarSign, Plus, Edit3, Trash2, PieChart as LucidePieChart, BarChart3, TrendingUp, TrendingDown } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const TripBudget: React.FC = () => {
@@ -13,6 +14,7 @@ const TripBudget: React.FC = () => {
     description: '',
     date: new Date().toISOString().split('T')[0]
   });
+  const { showToast } = useToast();
 
   const budgetData = {
     totalBudget: 3500,
@@ -65,6 +67,7 @@ const TripBudget: React.FC = () => {
     e.preventDefault();
     // In a real app, this would save to the backend
     console.log('Adding expense:', newExpense);
+    showToast('success', 'Expense added!', 'Your expense has been added to the budget.');
     setShowAddExpense(false);
     setNewExpense({
       category: 'accommodation',

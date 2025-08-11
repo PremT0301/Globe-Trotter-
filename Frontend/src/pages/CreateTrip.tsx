@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Calendar, Users, DollarSign, Camera, ArrowRight, ArrowLeft } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
 
 const CreateTrip: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -17,6 +18,7 @@ const CreateTrip: React.FC = () => {
   });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const steps = [
     { number: 1, title: 'Basic Info', icon: <MapPin className="h-5 w-5" /> },
@@ -57,6 +59,7 @@ const CreateTrip: React.FC = () => {
     e.preventDefault();
     // In a real app, this would save the trip data
     console.log('Trip data:', formData);
+    showToast('success', 'Trip created!', 'Your new trip has been created successfully.');
     navigate('/my-trips');
   };
 

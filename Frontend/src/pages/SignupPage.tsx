@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Globe, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
+import LoadingSpinner from '../components/LoadingSpinner';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
 const SignupPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -17,6 +19,7 @@ const SignupPage: React.FC = () => {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   
   const { signup } = useAuth();
+  const { showToast } = useToast();
   const navigate = useNavigate();
 
   const validateForm = () => {
@@ -54,9 +57,11 @@ const SignupPage: React.FC = () => {
     setIsLoading(true);
     try {
       await signup(formData.name, formData.email, formData.password);
+      showToast('success', 'Account created!', 'Welcome to GlobeTrotter!');
       navigate('/dashboard');
     } catch (error) {
       setErrors({ email: 'Failed to create account' });
+      showToast('error', 'Signup failed', 'Please try again or contact support.');
     } finally {
       setIsLoading(false);
     }
@@ -262,7 +267,7 @@ const SignupPage: React.FC = () => {
             className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
           >
             {isLoading ? (
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+              <LoadingSpinner size="sm" color="white" />
             ) : (
               'Create Account'
             )}
