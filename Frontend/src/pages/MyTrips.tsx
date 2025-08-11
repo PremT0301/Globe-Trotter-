@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Search, Filter, Calendar, MapPin, Users, MoreVertical, Edit, Trash2, Share2 } from 'lucide-react';
+import { Plus, Search, Filter, Calendar, MapPin, Users, MoreVertical, Edit, Trash2, Share2, Plane, Heart, Globe, Zap, ArrowRight } from 'lucide-react';
 
 const MyTrips: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -18,7 +18,8 @@ const MyTrips: React.FC = () => {
       status: 'upcoming',
       collaborators: 3,
       budget: 3500,
-      description: 'A wonderful journey through Europe\'s most beautiful cities.'
+      description: 'A wonderful journey through Europe\'s most beautiful cities.',
+      progress: 75
     },
     {
       id: '2',
@@ -29,7 +30,8 @@ const MyTrips: React.FC = () => {
       status: 'completed',
       collaborators: 1,
       budget: 2800,
-      description: 'Exploring the vibrant culture and cuisine of Tokyo.'
+      description: 'Exploring the vibrant culture and cuisine of Tokyo.',
+      progress: 100
     },
     {
       id: '3',
@@ -40,7 +42,8 @@ const MyTrips: React.FC = () => {
       status: 'planning',
       collaborators: 2,
       budget: 2200,
-      description: 'A relaxing retreat in the tropical paradise of Bali.'
+      description: 'A relaxing retreat in the tropical paradise of Bali.',
+      progress: 25
     },
     {
       id: '4',
@@ -51,7 +54,8 @@ const MyTrips: React.FC = () => {
       status: 'upcoming',
       collaborators: 4,
       budget: 4000,
-      description: 'Holiday season in the Big Apple with friends.'
+      description: 'Holiday season in the Big Apple with friends.',
+      progress: 60
     },
     {
       id: '5',
@@ -62,7 +66,8 @@ const MyTrips: React.FC = () => {
       status: 'planning',
       collaborators: 2,
       budget: 5500,
-      description: 'Wildlife safari across East Africa.'
+      description: 'Wildlife safari across East Africa.',
+      progress: 15
     },
     {
       id: '6',
@@ -73,7 +78,8 @@ const MyTrips: React.FC = () => {
       status: 'completed',
       collaborators: 6,
       budget: 3200,
-      description: 'Luxury cruise through the Mediterranean.'
+      description: 'Luxury cruise through the Mediterranean.',
+      progress: 100
     }
   ];
 
@@ -86,10 +92,19 @@ const MyTrips: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'upcoming': return 'bg-blue-100 text-blue-800';
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'planning': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'upcoming': return 'bg-primary-100 text-primary-700';
+      case 'completed': return 'bg-success-100 text-success-700';
+      case 'planning': return 'bg-accent-100 text-accent-700';
+      default: return 'bg-gray-100 text-gray-700';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'upcoming': return <Plane className="h-4 w-4" />;
+      case 'completed': return <Heart className="h-4 w-4" />;
+      case 'planning': return <Globe className="h-4 w-4" />;
+      default: return <Zap className="h-4 w-4" />;
     }
   };
 
@@ -103,41 +118,69 @@ const MyTrips: React.FC = () => {
     }
   };
 
-  const cardVariants = {
+  const itemVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 }
   };
 
+  const stats = [
+    { label: 'Total Trips', value: trips.length, icon: <Globe className="h-6 w-6" />, color: 'from-primary-500 to-primary-600' },
+    { label: 'Upcoming', value: trips.filter(t => t.status === 'upcoming').length, icon: <Plane className="h-6 w-6" />, color: 'from-secondary-500 to-secondary-600' },
+    { label: 'Completed', value: trips.filter(t => t.status === 'completed').length, icon: <Heart className="h-6 w-6" />, color: 'from-success-500 to-success-600' },
+    { label: 'Planning', value: trips.filter(t => t.status === 'planning').length, icon: <Zap className="h-6 w-6" />, color: 'from-accent-500 to-accent-600' }
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8"
+          className="mb-8"
         >
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">My Trips</h1>
-            <p className="text-gray-600">Manage and organize all your travel adventures</p>
+          <div className="flex items-center space-x-4 mb-4">
+            <div className="p-3 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-xl">
+              <Globe className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900">
+                My <span className="gradient-text">Trips</span>
+              </h1>
+              <p className="text-gray-600 mt-1">Manage and track all your travel adventures</p>
+            </div>
           </div>
-          <Link
-            to="/create-trip"
-            className="mt-4 sm:mt-0 inline-flex items-center bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200"
-          >
-            <Plus className="h-5 w-5 mr-2" />
-            New Trip
-          </Link>
+        </motion.div>
+
+        {/* Stats Cards */}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+        >
+          {stats.map((stat, index) => (
+            <motion.div
+              key={index}
+              variants={itemVariants}
+              className="card p-6"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">{stat.label}</p>
+                  <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+                </div>
+                <div className={`p-3 bg-gradient-to-r ${stat.color} rounded-xl`}>
+                  <div className="text-white">{stat.icon}</div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
         </motion.div>
 
         {/* Search and Filter */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-white rounded-xl shadow-sm p-6 mb-8"
-        >
-          <div className="flex flex-col sm:flex-row gap-4">
+        <div className="card p-6 mb-8">
+          <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
@@ -145,58 +188,100 @@ const MyTrips: React.FC = () => {
                 placeholder="Search trips..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:outline-none transition-colors"
               />
             </div>
-            <div className="relative">
-              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <div className="flex gap-2">
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="pl-10 pr-8 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 appearance-none bg-white"
+                className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:outline-none transition-colors"
               >
                 <option value="all">All Trips</option>
                 <option value="upcoming">Upcoming</option>
-                <option value="planning">Planning</option>
                 <option value="completed">Completed</option>
+                <option value="planning">Planning</option>
               </select>
+              <Link
+                to="/create-trip"
+                className="flex items-center px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all duration-300"
+              >
+                <Plus className="h-5 w-5 mr-2" />
+                New Trip
+              </Link>
             </div>
           </div>
-        </motion.div>
+        </div>
 
         {/* Trips Grid */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
         >
-          <AnimatePresence>
-            {filteredTrips.map((trip) => (
-              <motion.div
-                key={trip.id}
-                variants={cardVariants}
-                layout
-                whileHover={{ y: -5 }}
-                className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 hover:shadow-lg transition-all duration-200"
-              >
-                <div className="relative">
-                  <img
-                    src={trip.image}
-                    alt={trip.title}
-                    className="w-full h-48 object-cover"
-                  />
-                  <div className="absolute top-4 left-4">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(trip.status)}`}>
-                      {trip.status}
-                    </span>
+          {filteredTrips.map((trip, index) => (
+            <motion.div
+              key={trip.id}
+              variants={itemVariants}
+              className="card overflow-hidden group hover:shadow-2xl transition-all duration-300"
+            >
+              <div className="relative">
+                <img
+                  src={trip.image}
+                  alt={trip.title}
+                  className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+                
+                {/* Status Badge */}
+                <div className="absolute top-4 left-4">
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(trip.status)}`}>
+                    {getStatusIcon(trip.status)}
+                    <span className="ml-1 capitalize">{trip.status}</span>
+                  </span>
+                </div>
+
+                {/* Collaborators */}
+                <div className="absolute top-4 right-4">
+                  <div className="flex items-center bg-white/90 backdrop-blur-sm rounded-full px-3 py-1">
+                    <Users className="h-4 w-4 text-gray-600 mr-1" />
+                    <span className="text-sm font-medium text-gray-700">{trip.collaborators}</span>
                   </div>
-                  <div className="absolute top-4 right-4">
+                </div>
+
+                {/* Progress Bar */}
+                <div className="absolute bottom-4 left-4 right-4">
+                  <div className="flex items-center justify-between text-white mb-2">
+                    <span className="text-sm font-medium">Progress</span>
+                    <span className="text-sm">{trip.progress}%</span>
+                  </div>
+                  <div className="w-full bg-white/20 rounded-full h-2">
+                    <div 
+                      className={`h-2 rounded-full ${
+                        trip.status === 'completed' ? 'bg-success-500' : 
+                        trip.status === 'upcoming' ? 'bg-primary-500' : 'bg-accent-500'
+                      }`}
+                      style={{ width: `${trip.progress}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-primary-600 transition-colors">
+                      {trip.title}
+                    </h3>
+                    <p className="text-gray-600 text-sm mb-2">{trip.destination}</p>
+                  </div>
+                  <div className="relative">
                     <button
                       onClick={() => setShowDropdown(showDropdown === trip.id ? null : trip.id)}
-                      className="bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full p-2 transition-all duration-200"
+                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                     >
-                      <MoreVertical className="h-4 w-4 text-gray-600" />
+                      <MoreVertical className="h-5 w-5 text-gray-400" />
                     </button>
                     
                     <AnimatePresence>
@@ -205,21 +290,18 @@ const MyTrips: React.FC = () => {
                           initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.95 }}
-                          className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10"
+                          className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-10"
                         >
-                          <Link
-                            to={`/itinerary-builder/${trip.id}`}
-                            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                          >
-                            <Edit className="h-4 w-4 mr-2" />
+                          <button className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                            <Edit className="h-4 w-4 mr-3" />
                             Edit Trip
-                          </Link>
-                          <button className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                            <Share2 className="h-4 w-4 mr-2" />
+                          </button>
+                          <button className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                            <Share2 className="h-4 w-4 mr-3" />
                             Share Trip
                           </button>
-                          <button className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50">
-                            <Trash2 className="h-4 w-4 mr-2" />
+                          <button className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                            <Trash2 className="h-4 w-4 mr-3" />
                             Delete Trip
                           </button>
                         </motion.div>
@@ -228,63 +310,56 @@ const MyTrips: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="p-6">
-                  <h3 className="font-semibold text-gray-900 text-lg mb-2">{trip.title}</h3>
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center text-gray-600 text-sm">
-                      <MapPin className="h-4 w-4 mr-2" />
-                      {trip.destination}
-                    </div>
-                    <div className="flex items-center text-gray-600 text-sm">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      {trip.dates}
-                    </div>
-                    <div className="flex items-center text-gray-600 text-sm">
-                      <Users className="h-4 w-4 mr-2" />
-                      {trip.collaborators} travelers
-                    </div>
+                <p className="text-gray-600 text-sm mb-4 line-clamp-2">{trip.description}</p>
+
+                <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                  <div className="flex items-center">
+                    <Calendar className="h-4 w-4 mr-1" />
+                    {trip.dates}
                   </div>
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">{trip.description}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-lg font-semibold text-gray-900">
-                      ${trip.budget.toLocaleString()}
-                    </span>
-                    <Link
-                      to={`/itinerary/${trip.id}`}
-                      className="text-blue-600 hover:text-blue-700 font-medium text-sm"
-                    >
-                      View Details →
-                    </Link>
+                  <div className="flex items-center">
+                    <span className="font-semibold text-primary-600">${trip.budget.toLocaleString()}</span>
                   </div>
                 </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
+
+                <Link
+                  to={`/itinerary/${trip.id}`}
+                  className="flex items-center justify-center w-full py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all duration-300 group"
+                >
+                  <span className="font-semibold">View Details</span>
+                  <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
+                </Link>
+              </div>
+            </motion.div>
+          ))}
         </motion.div>
 
+        {/* Empty State */}
         {filteredTrips.length === 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="text-center py-12"
           >
-            <div className="text-gray-400 mb-4">
-              <MapPin className="h-16 w-16 mx-auto" />
+            <div className="max-w-md mx-auto">
+              <div className="w-24 h-24 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Plane className="h-12 w-12 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">No trips found</h3>
+              <p className="text-gray-600 mb-6">
+                {searchTerm || filterStatus !== 'all' 
+                  ? 'Try adjusting your search or filter criteria.'
+                  : 'Start planning your first adventure!'
+                }
+              </p>
+              <Link
+                to="/create-trip"
+                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all duration-300"
+              >
+                <Plus className="h-5 w-5 mr-2" />
+                Create Your First Trip
+              </Link>
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No trips found</h3>
-            <p className="text-gray-600 mb-6">
-              {searchTerm || filterStatus !== 'all' 
-                ? 'Try adjusting your search or filter criteria'
-                : 'Start planning your first adventure!'
-              }
-            </p>
-            <Link
-              to="/create-trip"
-              className="inline-flex items-center bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors duration-200"
-            >
-              <Plus className="h-5 w-5 mr-2" />
-              Create Your First Trip
-            </Link>
           </motion.div>
         )}
       </div>
