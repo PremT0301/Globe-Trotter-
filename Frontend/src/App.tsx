@@ -2,8 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import LandingPage from './pages/LandingPage';
 import { AuthProvider } from './context/AuthContext';
-import AdminDashboard from './pages/AdminDashboard';
-import Navbar from './components/Navbar';
+import LoginPage from './pages/LoginPage';
 
 function App() {
   return (
@@ -13,11 +12,11 @@ function App() {
           <AnimatePresence mode="wait">
             <Routes>
               <Route path="/" element={<LandingPage />} />
-              <Route path="/admin" element={<><Navbar /><AdminDashboard /></>} />
+              <Route path="/login" element={<LoginPage />} />
             </Routes>
           </AnimatePresence>
         </div>
-      </Router>
+      </Router >
     </AuthProvider>
   );
 }
