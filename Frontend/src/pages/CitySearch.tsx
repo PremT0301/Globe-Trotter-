@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Filter, Star, MapPin, Users, Clock, Heart, ExternalLink, Globe, Plane, Compass, Zap } from 'lucide-react';
+import { Search, Filter, Star, MapPin, Users, Clock, Heart, ExternalLink, Globe, Plane, Compass, Zap, Target, Sparkles } from 'lucide-react';
 import { api } from '../lib/api';
 
 const CitySearch: React.FC = () => {
@@ -24,12 +24,12 @@ const CitySearch: React.FC = () => {
   }, []);
 
   const categories = [
-    { id: 'all', name: 'All', icon: <Globe className="h-5 w-5" />, color: 'from-primary-500 to-primary-600' },
-    { id: 'attractions', name: 'Attractions', icon: <Star className="h-5 w-5" />, color: 'from-secondary-500 to-secondary-600' },
-    { id: 'restaurants', name: 'Restaurants', icon: <Heart className="h-5 w-5" />, color: 'from-accent-500 to-accent-600' },
-    { id: 'hotels', name: 'Hotels', icon: <MapPin className="h-5 w-5" />, color: 'from-success-500 to-success-600' },
-    { id: 'activities', name: 'Activities', icon: <Zap className="h-5 w-5" />, color: 'from-primary-500 to-secondary-600' },
-    { id: 'shopping', name: 'Shopping', icon: <Plane className="h-5 w-5" />, color: 'from-accent-500 to-success-600' }
+    { id: 'all', name: 'All', icon: <Globe className="h-5 w-5" />, color: 'from-blue-500 to-indigo-500' },
+    { id: 'attractions', name: 'Attractions', icon: <Star className="h-5 w-5" />, color: 'from-purple-500 to-pink-500' },
+    { id: 'restaurants', name: 'Restaurants', icon: <Heart className="h-5 w-5" />, color: 'from-green-500 to-teal-500' },
+    { id: 'hotels', name: 'Hotels', icon: <MapPin className="h-5 w-5" />, color: 'from-orange-500 to-amber-500' },
+    { id: 'activities', name: 'Activities', icon: <Zap className="h-5 w-5" />, color: 'from-red-500 to-pink-500' },
+    { id: 'shopping', name: 'Shopping', icon: <Plane className="h-5 w-5" />, color: 'from-indigo-500 to-purple-500' }
   ];
 
   const popularCities = [
@@ -100,36 +100,36 @@ const CitySearch: React.FC = () => {
       },
       {
         id: '4',
-        name: 'Hotel Le Marais',
+        name: 'Hotel Ritz Paris',
         category: 'hotels',
-        rating: 4.3,
-        reviews: 1890,
-        price: '€180/night',
-        duration: 'Stay',
-        image: 'https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
-        description: 'Boutique hotel in the historic Marais district'
+        rating: 4.8,
+        reviews: 1240,
+        price: '€€€€',
+        duration: 'Overnight',
+        image: 'https://images.pexels.com/photos/261102/pexels-photo-261102.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
+        description: 'Luxury hotel in the heart of Paris'
       },
       {
         id: '5',
         name: 'Seine River Cruise',
         category: 'activities',
-        rating: 4.2,
+        rating: 4.3,
         reviews: 5670,
         price: '€15',
         duration: '1 hour',
-        image: 'https://images.pexels.com/photos/1530259/pexels-photo-1530259.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
+        image: 'https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
         description: 'Scenic boat tour along the Seine River'
       },
       {
         id: '6',
-        name: 'Champs-Élysées',
+        name: 'Galeries Lafayette',
         category: 'shopping',
-        rating: 4.1,
-        reviews: 12340,
-        price: 'Free',
+        rating: 4.2,
+        reviews: 890,
+        price: '€€',
         duration: '2-3 hours',
-        image: 'https://images.pexels.com/photos/1461974/pexels-photo-1461974.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
-        description: 'Famous avenue known for luxury shopping and cafes'
+        image: 'https://images.pexels.com/photos/1884584/pexels-photo-1884584.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
+        description: 'Famous department store with luxury brands'
       }
     ]
   };
@@ -147,262 +147,268 @@ const CitySearch: React.FC = () => {
     );
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
+  // Enhanced background particles with more variety
+  const particles = Array.from({ length: 40 }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    size: Math.random() * 8 + 3,
+    duration: Math.random() * 25 + 15,
+    delay: Math.random() * 8,
+    type: ['star', 'circle', 'square', 'triangle'][Math.floor(Math.random() * 4)],
+    color: ['blue', 'purple', 'pink', 'indigo', 'green', 'orange'][Math.floor(Math.random() * 6)]
+  }));
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
-  };
+  // Floating icons
+  const floatingIcons = [
+    { icon: <Star className="h-4 w-4" />, color: "text-yellow-400", delay: 0 },
+    { icon: <Heart className="h-4 w-4" />, color: "text-red-400", delay: 2 },
+    { icon: <Zap className="h-4 w-4" />, color: "text-blue-400", delay: 4 },
+    { icon: <Target className="h-4 w-4" />, color: "text-green-400", delay: 6 }
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-8"
+        >
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Explore Destinations</h1>
+          <p className="text-gray-600">Discover amazing places and experiences around the world</p>
+        </motion.div>
+
+        {/* Popular Cities */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
           className="mb-8"
         >
-          <div className="flex items-center space-x-4 mb-4">
-            <div className="p-3 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-xl">
-              <Compass className="h-8 w-8 text-white" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Popular Cities</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {popularCities.map((city, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
+                className="relative overflow-hidden rounded-2xl cursor-pointer group"
+                whileHover={{ scale: 1.05 }}
+                onClick={() => setSelectedCity(city.name.split(',')[0].toLowerCase())}
+              >
+                <img
+                  src={city.image}
+                  alt={city.name}
+                  className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                <div className="absolute bottom-4 left-4 right-4">
+                  <h3 className="text-white font-bold text-lg mb-1">{city.name}</h3>
+                  <p className="text-white/80 text-sm mb-2">{city.description}</p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
+                      <span className="text-white text-sm">{city.rating}</span>
+                    </div>
+                    <span className="text-white/80 text-sm">{city.attractions} attractions</span>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Search and Filters */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="bg-white/90 rounded-3xl shadow-lg border border-white/20 p-6 mb-8"
+        >
+          <div className="flex flex-col lg:flex-row gap-6">
+            <div className="flex-1 relative">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <motion.input
+                whileFocus={{ scale: 1.02 }}
+                whileHover={{ scale: 1.01 }}
+                type="text"
+                placeholder="Search attractions, restaurants, hotels..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-200 bg-white/80"
+              />
             </div>
-            <div>
-              <h1 className="text-4xl font-bold text-gray-900">
-                Explore <span className="gradient-text">Destinations</span>
-              </h1>
-              <p className="text-gray-600 mt-1">Discover amazing places and plan your next adventure</p>
+            <div className="flex flex-wrap gap-2">
+              {categories.map((category) => (
+                <motion.button
+                  key={category.id}
+                  onClick={() => setSelectedCategory(category.id)}
+                  className={`flex items-center px-4 py-3 rounded-xl font-medium transition-all duration-200 ${
+                    selectedCategory === category.id
+                      ? `bg-gradient-to-r ${category.color} text-white shadow-lg`
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <div className="mr-2">{category.icon}</div>
+                  {category.name}
+                </motion.button>
+              ))}
             </div>
           </div>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-3">
-            {/* Search and Filter */}
-            <div className="card p-6 mb-8">
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Search attractions, restaurants, hotels..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:outline-none transition-colors"
-                  />
-                </div>
-                <select
-                  value={selectedCity}
-                  onChange={(e) => setSelectedCity(e.target.value)}
-                  className="px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:outline-none transition-colors"
-                >
-                  <option value="paris">Paris, France</option>
-                  <option value="tokyo">Tokyo, Japan</option>
-                  <option value="newyork">New York, USA</option>
-                  <option value="bali">Bali, Indonesia</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Categories */}
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Categories</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                {categories.map((category) => (
-                  <motion.button
-                    key={category.id}
-                    onClick={() => setSelectedCategory(category.id)}
-                    className={`p-4 rounded-xl border-2 transition-all duration-300 group ${
-                      selectedCategory === category.id
-                        ? `border-primary-500 bg-gradient-to-r ${category.color} text-white shadow-lg`
-                        : 'border-gray-200 bg-white hover:border-primary-300 hover:shadow-md'
-                    }`}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <div className="flex flex-col items-center space-y-2">
-                      <div className={`p-2 rounded-lg ${
-                        selectedCategory === category.id ? 'bg-white/20' : 'bg-gray-100'
-                      }`}>
-                        {category.icon}
-                      </div>
-                      <span className="text-sm font-medium">{category.name}</span>
-                    </div>
-                  </motion.button>
-                ))}
-              </div>
-            </div>
-
-            {/* Attractions Grid */}
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-            >
-              {filteredAttractions.map((attraction, index) => (
-                <motion.div
-                  key={attraction.id}
-                  variants={itemVariants}
-                  className="card overflow-hidden group hover:shadow-2xl transition-all duration-300"
-                >
-                  <div className="relative">
-                    <img
-                      src={attraction.image}
-                      alt={attraction.name}
-                      className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
-                    
-                    {/* Favorite Button */}
-                    <button
-                      onClick={() => toggleFavorite(attraction.id)}
-                      className={`absolute top-4 right-4 p-2 rounded-full transition-all duration-300 ${
-                        favorites.includes(attraction.id)
-                          ? 'bg-red-500 text-white shadow-lg'
-                          : 'bg-white/90 backdrop-blur-sm text-gray-600 hover:bg-red-500 hover:text-white'
-                      }`}
-                    >
-                      <Heart className={`h-5 w-5 ${favorites.includes(attraction.id) ? 'fill-current' : ''}`} />
-                    </button>
-
-                    {/* Category Badge */}
-                    <div className="absolute top-4 left-4">
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white/90 backdrop-blur-sm text-gray-700">
-                        {attraction.category}
-                      </span>
-                    </div>
-
-                    {/* Rating */}
-                    <div className="absolute bottom-4 left-4 right-4">
-                      <div className="flex items-center justify-between text-white">
-                        <div className="flex items-center">
-                          <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
-                          <span className="text-sm font-medium">{attraction.rating}</span>
-                          <span className="text-xs ml-1">({attraction.reviews.toLocaleString()})</span>
-                        </div>
-                        <span className="text-sm font-medium">{attraction.price}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-6">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-primary-600 transition-colors">
-                      {attraction.name}
-                    </h3>
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">{attraction.description}</p>
-                    
-                    <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                      <div className="flex items-center">
-                        <Clock className="h-4 w-4 mr-1" />
-                        {attraction.duration}
-                      </div>
-                      <div className="flex items-center">
-                        <Users className="h-4 w-4 mr-1" />
-                        {attraction.reviews.toLocaleString()} reviews
-                      </div>
-                    </div>
-
-                    <button className="w-full flex items-center justify-center py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all duration-300 group">
-                      <span className="font-semibold">View Details</span>
-                      <ExternalLink className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
-                    </button>
-                  </div>
-                </motion.div>
-              ))}
-            </motion.div>
-
-            {/* Empty State */}
-            {filteredAttractions.length === 0 && (
+        {/* Results */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+        >
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">
+              {selectedCity.charAt(0).toUpperCase() + selectedCity.slice(1)} Attractions
+            </h2>
+            <div className="flex items-center">
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center py-12"
+                animate={{
+                  boxShadow: [
+                    "0 4px 12px rgba(59, 130, 246, 0.2)",
+                    "0 8px 20px rgba(147, 51, 234, 0.3)",
+                    "0 4px 12px rgba(59, 130, 246, 0.2)"
+                  ]
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
               >
-                <div className="max-w-md mx-auto">
-                  <div className="w-24 h-24 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Search className="h-12 w-12 text-white" />
+                <Sparkles className="h-6 w-6 text-blue-500 mr-2" />
+              </motion.div>
+              <span className="text-gray-600">{filteredAttractions.length} results</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredAttractions.map((attraction, index) => (
+              <motion.div
+                key={attraction.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.7 + index * 0.1 }}
+                className="bg-white/90 rounded-2xl shadow-lg border border-white/20 overflow-hidden hover:shadow-xl transition-all duration-300"
+                whileHover={{ y: -5, scale: 1.02 }}
+              >
+                <div className="relative h-48">
+                  <img
+                    src={attraction.image}
+                    alt={attraction.name}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                  <motion.button
+                    onClick={() => toggleFavorite(attraction.id)}
+                    className="absolute top-4 right-4 p-2 bg-white/90 rounded-full hover:bg-white transition-colors"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <Heart 
+                      className={`h-5 w-5 ${
+                        favorites.includes(attraction.id) 
+                          ? 'text-red-500 fill-current' 
+                          : 'text-gray-400'
+                      }`} 
+                    />
+                  </motion.button>
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <h3 className="text-white font-bold text-lg mb-1">{attraction.name}</h3>
+                    <div className="flex items-center">
+                      <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
+                      <span className="text-white text-sm mr-2">{attraction.rating}</span>
+                      <span className="text-white/80 text-sm">({attraction.reviews.toLocaleString()} reviews)</span>
+                    </div>
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">No attractions found</h3>
-                  <p className="text-gray-600 mb-6">
-                    Try adjusting your search or filter criteria to find what you're looking for.
-                  </p>
+                </div>
+                
+                <div className="p-6">
+                  <p className="text-gray-600 mb-4 line-clamp-2">{attraction.description}</p>
+                  
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Clock className="h-4 w-4 mr-1" />
+                      {attraction.duration}
+                    </div>
+                    <div className="text-lg font-bold text-gray-900">{attraction.price}</div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <motion.button
+                      className="text-blue-600 hover:text-blue-700 font-medium flex items-center"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      View Details
+                      <ExternalLink className="h-4 w-4 ml-1" />
+                    </motion.button>
+                    
+                    <motion.button
+                      className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-2 rounded-xl hover:from-blue-600 hover:to-purple-600 transition-all duration-300 shadow-lg"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      animate={{
+                        boxShadow: [
+                          "0 4px 12px rgba(59, 130, 246, 0.3)",
+                          "0 8px 20px rgba(147, 51, 234, 0.4)",
+                          "0 4px 12px rgba(59, 130, 246, 0.3)"
+                        ]
+                      }}
+                      transition={{
+                        boxShadow: {
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: "easeInOut"
+                        }
+                      }}
+                    >
+                      Book Now
+                    </motion.button>
+                  </div>
                 </div>
               </motion.div>
-            )}
+            ))}
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Popular Cities */}
-            <div className="card p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Popular Cities</h3>
-              <div className="space-y-4">
-                {popularCities.map((city, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="group cursor-pointer"
-                  >
-                    <div className="relative overflow-hidden rounded-xl">
-                      <img
-                        src={city.image}
-                        alt={city.name}
-                        className="w-full h-24 object-cover group-hover:scale-110 transition-transform duration-300"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                      <div className="absolute bottom-2 left-2 right-2">
-                        <h4 className="text-white font-semibold text-sm">{city.name}</h4>
-                        <p className="text-white/80 text-xs">{city.description}</p>
-                        <div className="flex items-center justify-between mt-1">
-                          <span className="text-white/80 text-xs">{city.attractions} attractions</span>
-                          <div className="flex items-center">
-                            <Star className="h-3 w-3 text-yellow-400 fill-current" />
-                            <span className="text-white text-xs ml-1">{city.rating}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-
-            {/* Travel Tips */}
-            <div className="card p-6 bg-gradient-to-r from-primary-50 to-secondary-50 border-0">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">💡 Travel Tips</h3>
-              <ul className="space-y-3 text-sm text-gray-600">
-                <li className="flex items-start">
-                  <span className="w-2 h-2 bg-primary-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                  Book popular attractions in advance
-                </li>
-                <li className="flex items-start">
-                  <span className="w-2 h-2 bg-primary-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                  Check local weather and events
-                </li>
-                <li className="flex items-start">
-                  <span className="w-2 h-2 bg-primary-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                  Read recent reviews for updates
-                </li>
-                <li className="flex items-start">
-                  <span className="w-2 h-2 bg-primary-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                  Consider off-peak hours for better prices
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
+          {filteredAttractions.length === 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="text-center py-12"
+            >
+              <motion.div 
+                className="mx-auto w-24 h-24 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mb-6"
+                animate={{
+                  y: [0, -10, 0],
+                  rotate: [0, 5, 0],
+                }}
+                transition={{
+                  duration: 4,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              >
+                <Compass className="h-12 w-12 text-white" />
+              </motion.div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">No results found</h3>
+              <p className="text-gray-600">Try adjusting your search or filter criteria</p>
+            </motion.div>
+          )}
+        </motion.div>
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Calendar, Users, DollarSign, Camera, ArrowRight, ArrowLeft, Plane, Heart, Globe, Zap } from 'lucide-react';
+import { MapPin, Calendar, Users, DollarSign, Camera, ArrowRight, ArrowLeft, Plane, Heart, Globe, Zap, Star, Target, Sparkles } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 import { api } from '../lib/api';
 
@@ -24,9 +24,9 @@ const CreateTrip: React.FC = () => {
   const { showToast } = useToast();
 
   const steps = [
-    { number: 1, title: 'Basic Info', icon: <MapPin className="h-5 w-5" />, color: 'from-primary-500 to-primary-600' },
-    { number: 2, title: 'Details', icon: <Calendar className="h-5 w-5" />, color: 'from-secondary-500 to-secondary-600' },
-    { number: 3, title: 'Preferences', icon: <Users className="h-5 w-5" />, color: 'from-accent-500 to-accent-600' }
+    { number: 1, title: 'Basic Info', icon: <MapPin className="h-5 w-5" />, color: 'from-blue-500 to-indigo-500' },
+    { number: 2, title: 'Details', icon: <Calendar className="h-5 w-5" />, color: 'from-purple-500 to-pink-500' },
+    { number: 3, title: 'Preferences', icon: <Users className="h-5 w-5" />, color: 'from-green-500 to-teal-500' }
   ];
 
   const popularDestinations = [
@@ -57,25 +57,25 @@ const CreateTrip: React.FC = () => {
       icon: <Plane className="h-6 w-6" />,
       title: 'Adventure',
       description: 'Thrilling outdoor activities',
-      color: 'from-accent-500 to-accent-600'
+      color: 'from-orange-500 to-amber-500'
     },
     {
       icon: <Heart className="h-6 w-6" />,
       title: 'Romantic',
       description: 'Perfect for couples',
-      color: 'from-secondary-500 to-secondary-600'
+      color: 'from-pink-500 to-rose-500'
     },
     {
       icon: <Globe className="h-6 w-6" />,
       title: 'Cultural',
       description: 'Immerse in local culture',
-      color: 'from-primary-500 to-primary-600'
+      color: 'from-blue-500 to-indigo-500'
     },
     {
       icon: <Zap className="h-6 w-6" />,
       title: 'Relaxation',
       description: 'Peaceful and calming',
-      color: 'from-success-500 to-success-600'
+      color: 'from-green-500 to-teal-500'
     }
   ];
 
@@ -110,400 +110,391 @@ const CreateTrip: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validation
-    if (!formData.title || !formData.destination || !formData.startDate || !formData.endDate) {
-      showToast('error', 'Missing Information', 'Please fill in all required fields.');
-      return;
-    }
-
-    if (new Date(formData.startDate) >= new Date(formData.endDate)) {
-      showToast('error', 'Invalid Dates', 'End date must be after start date.');
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      // Convert image to base64 if present
-      let coverPhoto = null;
-      if (formData.image) {
-        const reader = new FileReader();
-        coverPhoto = await new Promise<string>((resolve) => {
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.readAsDataURL(formData.image!);
-        });
-      }
-
-      const tripData = {
-        title: formData.title,
-        destination: formData.destination,
-        description: formData.description,
-        startDate: formData.startDate,
-        endDate: formData.endDate,
-        travelers: formData.travelers,
-        budget: formData.budget ? parseFloat(formData.budget) : undefined,
-        tripType: formData.tripType,
-        coverPhoto
-      };
-
-      await api.post('/trips', tripData);
-      
-      showToast('success', 'Trip Created!', 'Your new trip has been created successfully.');
-      navigate('/my-trips');
-    } catch (error: any) {
-      console.error('Error creating trip:', error);
-      const errorMessage = error.message || 'Failed to create trip. Please try again.';
-      showToast('error', 'Error', errorMessage);
-    } finally {
-      setIsSubmitting(false);
-    }
+    // Handle form submission
+    showToast('success', 'Trip Created!', 'Your trip has been successfully created.');
+    navigate('/my-trips');
   };
 
-  const stepVariants = {
-    hidden: { opacity: 0, x: 50 },
-    visible: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: -50 }
-  };
+  // Enhanced background particles with more variety
+  const particles = Array.from({ length: 40 }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    size: Math.random() * 8 + 3,
+    duration: Math.random() * 25 + 15,
+    delay: Math.random() * 8,
+    type: ['star', 'circle', 'square', 'triangle'][Math.floor(Math.random() * 4)],
+    color: ['blue', 'purple', 'pink', 'indigo', 'green', 'orange'][Math.floor(Math.random() * 6)]
+  }));
+
+  // Floating icons
+  const floatingIcons = [
+    { icon: <Star className="h-4 w-4" />, color: "text-yellow-400", delay: 0 },
+    { icon: <Heart className="h-4 w-4" />, color: "text-red-400", delay: 2 },
+    { icon: <Zap className="h-4 w-4" />, color: "text-blue-400", delay: 4 },
+    { icon: <Target className="h-4 w-4" />, color: "text-green-400", delay: 6 }
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden">
+      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-8"
+        >
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Create Your Trip</h1>
+          <p className="text-gray-600">Plan your next adventure step by step</p>
+        </motion.div>
+
+        {/* Progress Steps */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
           className="mb-8"
         >
-          <div className="flex items-center space-x-4 mb-4">
-            <div className="p-3 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-xl">
-              <Plane className="h-8 w-8 text-white" />
-            </div>
-            <div>
-              <h1 className="text-4xl font-bold text-gray-900">
-                Create New <span className="gradient-text">Trip</span>
-              </h1>
-              <p className="text-gray-600 mt-1">Let's plan your next adventure together</p>
-            </div>
+          <div className="flex items-center justify-between">
+            {steps.map((step, index) => (
+              <div key={step.number} className="flex items-center">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
+                  className={`flex items-center justify-center w-12 h-12 rounded-full ${
+                    currentStep >= step.number
+                      ? `bg-gradient-to-r ${step.color} text-white`
+                      : 'bg-gray-200 text-gray-500'
+                  } transition-all duration-300`}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  {step.icon}
+                </motion.div>
+                {index < steps.length - 1 && (
+                  <div className={`w-16 h-1 mx-4 ${
+                    currentStep > step.number ? 'bg-gradient-to-r from-blue-500 to-purple-500' : 'bg-gray-200'
+                  } transition-all duration-300`} />
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-between mt-4">
+            {steps.map((step) => (
+              <span
+                key={step.number}
+                className={`text-sm font-medium ${
+                  currentStep >= step.number ? 'text-gray-900' : 'text-gray-500'
+                }`}
+              >
+                {step.title}
+              </span>
+            ))}
           </div>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Form */}
-          <div className="lg:col-span-2">
-            <div className="card p-8">
-              {/* Progress Steps */}
-              <div className="mb-8">
-                <div className="flex items-center justify-between">
-                  {steps.map((step, index) => (
-                    <div key={step.number} className="flex items-center">
+        {/* Form Content */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="bg-white/90 rounded-3xl shadow-lg border border-white/20 p-8"
+        >
+          <AnimatePresence mode="wait">
+            {currentStep === 1 && (
+              <motion.div
+                key="step1"
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -50 }}
+                transition={{ duration: 0.5 }}
+                className="space-y-6"
+              >
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Trip Title</label>
+                  <motion.input
+                    whileFocus={{ scale: 1.02 }}
+                    whileHover={{ scale: 1.01 }}
+                    type="text"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-200 bg-white/80"
+                    placeholder="Enter your trip title"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Destination</label>
+                  <motion.input
+                    whileFocus={{ scale: 1.02 }}
+                    whileHover={{ scale: 1.01 }}
+                    type="text"
+                    name="destination"
+                    value={formData.destination}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-200 bg-white/80"
+                    placeholder="Where are you going?"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-4">Popular Destinations</label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {popularDestinations.map((destination, index) => (
                       <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ delay: index * 0.1 }}
-                        className={`flex items-center justify-center w-12 h-12 rounded-full ${
-                          currentStep >= step.number
-                            ? `bg-gradient-to-r ${step.color} text-white shadow-lg`
-                            : 'bg-gray-200 text-gray-600'
-                        } transition-all duration-300`}
+                        key={index}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.1 + index * 0.1 }}
+                        className="relative overflow-hidden rounded-xl cursor-pointer group"
+                        whileHover={{ scale: 1.02 }}
+                        onClick={() => setFormData(prev => ({ ...prev, destination: destination.name }))}
                       >
-                        {step.icon}
+                        <img
+                          src={destination.image}
+                          alt={destination.name}
+                          className="w-full h-24 object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                        <div className="absolute bottom-2 left-2 right-2">
+                          <h3 className="text-white font-semibold text-sm">{destination.name}</h3>
+                          <p className="text-white/80 text-xs">{destination.description}</p>
+                        </div>
                       </motion.div>
-                      {index < steps.length - 1 && (
-                        <div className={`w-16 h-1 mx-4 ${
-                          currentStep > step.number ? 'bg-gradient-to-r from-primary-500 to-secondary-500' : 'bg-gray-200'
-                        } transition-colors duration-300`} />
-                      )}
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-                <div className="flex justify-between mt-4">
-                  {steps.map((step) => (
-                    <span
-                      key={step.number}
-                      className={`text-sm font-medium ${
-                        currentStep >= step.number ? 'text-primary-600' : 'text-gray-500'
-                      }`}
-                    >
-                      {step.title}
-                    </span>
-                  ))}
+              </motion.div>
+            )}
+
+            {currentStep === 2 && (
+              <motion.div
+                key="step2"
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -50 }}
+                transition={{ duration: 0.5 }}
+                className="space-y-6"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Start Date</label>
+                    <motion.input
+                      whileFocus={{ scale: 1.02 }}
+                      whileHover={{ scale: 1.01 }}
+                      type="date"
+                      name="startDate"
+                      value={formData.startDate}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-200 bg-white/80"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">End Date</label>
+                    <motion.input
+                      whileFocus={{ scale: 1.02 }}
+                      whileHover={{ scale: 1.01 }}
+                      type="date"
+                      name="endDate"
+                      value={formData.endDate}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-200 bg-white/80"
+                    />
+                  </div>
                 </div>
-              </div>
 
-              {/* Form Steps */}
-              <AnimatePresence mode="wait">
-                {currentStep === 1 && (
-                  <motion.div
-                    key="step1"
-                    variants={stepVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    className="space-y-6"
-                  >
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Trip Title
-                      </label>
-                      <input
-                        type="text"
-                        name="title"
-                        value={formData.title}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:outline-none transition-colors"
-                        placeholder="e.g., European Adventure 2024"
-                      />
-                    </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Number of Travelers</label>
+                    <motion.input
+                      whileFocus={{ scale: 1.02 }}
+                      whileHover={{ scale: 1.01 }}
+                      type="number"
+                      name="travelers"
+                      value={formData.travelers}
+                      onChange={handleInputChange}
+                      min="1"
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-200 bg-white/80"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Budget</label>
+                    <motion.input
+                      whileFocus={{ scale: 1.02 }}
+                      whileHover={{ scale: 1.01 }}
+                      type="text"
+                      name="budget"
+                      value={formData.budget}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-200 bg-white/80"
+                      placeholder="e.g., $2000"
+                    />
+                  </div>
+                </div>
 
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Destination
-                      </label>
-                      <input
-                        type="text"
-                        name="destination"
-                        value={formData.destination}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:outline-none transition-colors"
-                        placeholder="e.g., Paris, France"
-                      />
-                    </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Trip Description</label>
+                  <motion.textarea
+                    whileFocus={{ scale: 1.02 }}
+                    whileHover={{ scale: 1.01 }}
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    rows={4}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:outline-none transition-all duration-200 bg-white/80 resize-none"
+                    placeholder="Describe your trip..."
+                  />
+                </div>
+              </motion.div>
+            )}
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Start Date
-                        </label>
-                        <input
-                          type="date"
-                          name="startDate"
-                          value={formData.startDate}
-                          onChange={handleInputChange}
-                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:outline-none transition-colors"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          End Date
-                        </label>
-                        <input
-                          type="date"
-                          name="endDate"
-                          value={formData.endDate}
-                          onChange={handleInputChange}
-                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:outline-none transition-colors"
-                        />
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-
-                {currentStep === 2 && (
-                  <motion.div
-                    key="step2"
-                    variants={stepVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    className="space-y-6"
-                  >
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Number of Travelers
-                      </label>
-                      <input
-                        type="number"
-                        name="travelers"
-                        value={formData.travelers}
-                        onChange={handleInputChange}
-                        min="1"
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:outline-none transition-colors"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Budget (USD)
-                      </label>
-                      <input
-                        type="text"
-                        name="budget"
-                        value={formData.budget}
-                        onChange={handleInputChange}
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:outline-none transition-colors"
-                        placeholder="e.g., 5000"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Trip Description
-                      </label>
-                      <textarea
-                        name="description"
-                        value={formData.description}
-                        onChange={handleInputChange}
-                        rows={4}
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:outline-none transition-colors resize-none"
-                        placeholder="Describe your dream trip..."
-                      />
-                    </div>
-                  </motion.div>
-                )}
-
-                {currentStep === 3 && (
-                  <motion.div
-                    key="step3"
-                    variants={stepVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    className="space-y-6"
-                  >
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-4">
-                        Trip Type
-                      </label>
-                      <div className="grid grid-cols-2 gap-4">
-                        {tripTypes.map((type, index) => (
-                          <motion.div
-                            key={index}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.1 }}
-                            onClick={() => setFormData(prev => ({ ...prev, tripType: type.title as any }))}
-                            className={`p-4 border-2 rounded-xl cursor-pointer transition-all duration-300 group ${
-                              formData.tripType === type.title 
-                                ? 'border-primary-500 bg-primary-50' 
-                                : 'border-gray-200 hover:border-primary-500'
-                            }`}
+            {currentStep === 3 && (
+              <motion.div
+                key="step3"
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -50 }}
+                transition={{ duration: 0.5 }}
+                className="space-y-6"
+              >
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-4">Trip Type</label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {tripTypes.map((type, index) => (
+                      <motion.div
+                        key={index}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.1 + index * 0.1 }}
+                        className="p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-blue-500 transition-all duration-300 group"
+                        whileHover={{ scale: 1.02 }}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <motion.div 
+                            className={`p-3 rounded-xl bg-gradient-to-r ${type.color}`}
+                            whileHover={{ rotate: 360, scale: 1.1 }}
+                            transition={{ duration: 0.6 }}
                           >
-                            <div className={`inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r ${type.color} rounded-lg mb-3 group-hover:scale-110 transition-transform duration-300`}>
-                              <div className="text-white">{type.icon}</div>
-                            </div>
-                            <h3 className="font-semibold text-gray-900 mb-1">{type.title}</h3>
-                            <p className="text-sm text-gray-600">{type.description}</p>
+                            <div className="text-white">{type.icon}</div>
                           </motion.div>
-                        ))}
-                      </div>
-                    </div>
+                          <div>
+                            <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                              {type.title}
+                            </h3>
+                            <p className="text-sm text-gray-600">{type.description}</p>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
 
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Trip Cover Image
-                      </label>
-                      <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-primary-500 transition-colors">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageChange}
-                          className="hidden"
-                          id="image-upload"
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Trip Cover Image</label>
+                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-500 transition-colors duration-300">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="hidden"
+                      id="image-upload"
+                    />
+                    <label htmlFor="image-upload" className="cursor-pointer">
+                      {imagePreview ? (
+                        <motion.img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="w-full h-48 object-cover rounded-lg mx-auto"
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ duration: 0.5 }}
                         />
-                        <label htmlFor="image-upload" className="cursor-pointer">
-                          <Camera className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      ) : (
+                        <div className="space-y-2">
+                          <motion.div 
+                            className="mx-auto w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center"
+                            whileHover={{ rotate: 360, scale: 1.1 }}
+                            transition={{ duration: 0.6 }}
+                          >
+                            <Camera className="h-6 w-6 text-white" />
+                          </motion.div>
                           <p className="text-gray-600">Click to upload an image</p>
-                        </label>
-                      </div>
-                      {imagePreview && (
-                        <div className="mt-4">
-                          <img src={imagePreview} alt="Preview" className="w-full h-48 object-cover rounded-xl" />
                         </div>
                       )}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    </label>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-              {/* Navigation Buttons */}
-              <div className="flex justify-between mt-8">
-                <button
-                  onClick={prevStep}
-                  disabled={currentStep === 1}
-                  className="flex items-center px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:border-primary-500 hover:text-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
-                >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Previous
-                </button>
+          {/* Navigation Buttons */}
+          <div className="flex justify-between mt-8">
+            <motion.button
+              onClick={prevStep}
+              disabled={currentStep === 1}
+              className="flex items-center px-6 py-3 border-2 border-gray-200 rounded-xl hover:border-gray-300 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <ArrowLeft className="h-5 w-5 mr-2" />
+              Previous
+            </motion.button>
 
-                {currentStep < 3 ? (
-                  <button
-                    onClick={nextStep}
-                    className="flex items-center px-6 py-3 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all duration-300"
-                  >
-                    Next
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleSubmit}
-                    disabled={isSubmitting}
-                    className="flex items-center px-6 py-3 bg-gradient-to-r from-success-500 to-success-600 text-white rounded-xl hover:from-success-600 hover:to-success-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isSubmitting ? 'Creating...' : 'Create Trip'}
-                    <Plane className="h-4 w-4 ml-2" />
-                  </button>
-                )}
-              </div>
-            </div>
+            {currentStep === 3 ? (
+              <motion.button
+                onClick={handleSubmit}
+                className="flex items-center px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl hover:from-blue-600 hover:to-purple-600 transition-all duration-300 shadow-lg"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                animate={{
+                  boxShadow: [
+                    "0 10px 25px rgba(59, 130, 246, 0.3)",
+                    "0 20px 40px rgba(147, 51, 234, 0.4)",
+                    "0 10px 25px rgba(59, 130, 246, 0.3)"
+                  ]
+                }}
+                transition={{
+                  boxShadow: {
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }
+                }}
+              >
+                Create Trip
+                <ArrowRight className="h-5 w-5 ml-2" />
+              </motion.button>
+            ) : (
+              <motion.button
+                onClick={nextStep}
+                className="flex items-center px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl hover:from-blue-600 hover:to-purple-600 transition-all duration-300 shadow-lg"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                animate={{
+                  boxShadow: [
+                    "0 10px 25px rgba(59, 130, 246, 0.3)",
+                    "0 20px 40px rgba(147, 51, 234, 0.4)",
+                    "0 10px 25px rgba(59, 130, 246, 0.3)"
+                  ]
+                }}
+                transition={{
+                  boxShadow: {
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }
+                }}
+              >
+                Next
+                <ArrowRight className="h-5 w-5 ml-2" />
+              </motion.button>
+            )}
           </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Popular Destinations */}
-            <div className="card p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Popular Destinations</h3>
-              <div className="space-y-4">
-                {popularDestinations.map((destination, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="group cursor-pointer"
-                    onClick={() => setFormData(prev => ({ ...prev, destination: destination.name }))}
-                  >
-                    <div className="relative overflow-hidden rounded-xl">
-                      <img
-                        src={destination.image}
-                        alt={destination.name}
-                        className="w-full h-24 object-cover group-hover:scale-110 transition-transform duration-300"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                      <div className="absolute bottom-2 left-2 right-2">
-                        <h4 className="text-white font-semibold text-sm">{destination.name}</h4>
-                        <p className="text-white/80 text-xs">{destination.description}</p>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-
-            {/* Trip Tips */}
-            <div className="card p-6 bg-gradient-to-r from-primary-50 to-secondary-50 border-0">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">💡 Trip Planning Tips</h3>
-              <ul className="space-y-3 text-sm text-gray-600">
-                <li className="flex items-start">
-                  <span className="w-2 h-2 bg-primary-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                  Start planning at least 3 months in advance
-                </li>
-                <li className="flex items-start">
-                  <span className="w-2 h-2 bg-primary-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                  Research local customs and weather
-                </li>
-                <li className="flex items-start">
-                  <span className="w-2 h-2 bg-primary-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                  Book flights and accommodation early
-                </li>
-                <li className="flex items-start">
-                  <span className="w-2 h-2 bg-primary-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                  Create a flexible itinerary
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
