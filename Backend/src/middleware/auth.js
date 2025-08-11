@@ -35,7 +35,8 @@ const authenticateToken = async (req, res, next) => {
       id: String(user._id),
       email: user.email,
       name: user.name,
-      emailVerified: user.emailVerified
+      emailVerified: user.emailVerified,
+      role: user.role
     };
 
     next();
@@ -79,7 +80,8 @@ const optionalAuth = async (req, res, next) => {
         id: String(user._id),
         email: user.email,
         name: user.name,
-        emailVerified: user.emailVerified
+        emailVerified: user.emailVerified,
+        role: user.role
       };
     } else {
       req.user = null;
@@ -99,7 +101,7 @@ const requireAdmin = async (req, res, next) => {
       if (err) return next(err);
     });
 
-    if (req.user.email !== 'admin@globetrotter.com') {
+    if (req.user.role !== 'admin') {
       return res.status(403).json({ 
         message: 'Admin access required' 
       });

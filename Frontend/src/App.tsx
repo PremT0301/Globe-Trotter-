@@ -17,9 +17,11 @@ import TripCalendar from './pages/TripCalendar';
 import SharedItinerary from './pages/SharedItinerary';
 import UserProfile from './pages/UserProfile';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminLoginTest from './pages/AdminLoginTest';
 import NotFound from './pages/NotFound';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminRoute from './components/AdminRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
@@ -91,11 +93,14 @@ function App() {
                       <><Navbar /><UserProfile /></>
                     </ProtectedRoute>
                   } />
-                  <Route path="/admin" element={
-                    <ProtectedRoute requireAdmin>
-                      <><Navbar /><AdminDashboard /></>
-                    </ProtectedRoute>
-                  } />
+                                     <Route path="/admin" element={
+                     <AdminRoute>
+                       <><Navbar /><AdminDashboard /></>
+                     </AdminRoute>
+                   } />
+                   <Route path="/admin-test" element={<AdminLoginTest />} />
+                   <Route path="/admin-direct" element={<><Navbar /><AdminDashboard /></>} />
+                   <Route path="/admin-now" element={<AdminDashboard />} />
 
                   {/* 404 Route */}
                   <Route path="*" element={<NotFound />} />

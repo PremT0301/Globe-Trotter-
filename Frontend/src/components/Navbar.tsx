@@ -1,14 +1,24 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, User, LogOut, Settings, Globe, Plane, Heart, Zap, Sparkles } from 'lucide-react';
+import { Menu, X, User, LogOut, Settings, Globe, Plane, Heart, Zap, Sparkles, Camera, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import ProfilePhotoUpload from './ProfilePhotoUpload';
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isPhotoUploadOpen, setIsPhotoUploadOpen] = useState(false);
+
+  // Debug logging for navbar
+  console.log('🔍 Navbar Debug:', {
+    user: user ? { id: user.id, email: user.email, role: user.role } : null,
+    hasUser: !!user,
+    userRole: user?.role,
+    isAdmin: user?.role === 'admin'
+  });
 
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: <Globe className="h-5 w-5" /> },
@@ -69,8 +79,16 @@ const Navbar: React.FC = () => {
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                   className="flex items-center space-x-3 p-2 rounded-2xl bg-gradient-to-r from-bright-green to-bright-teal text-white shadow-3d hover:shadow-3d-lg transform hover:scale-105 transition-all duration-300"
                 >
-                  <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                    <User className="h-5 w-5" />
+                  <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center overflow-hidden">
+                    {user.profilePhoto ? (
+                      <img
+                        src={user.profilePhoto}
+                        alt={user.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <User className="h-5 w-5" />
+                    )}
                   </div>
                   <span className="font-medium">{user.name}</span>
                   <motion.div
@@ -94,8 +112,16 @@ const Navbar: React.FC = () => {
                     >
                       <div className="p-4">
                         <div className="flex items-center space-x-3 mb-4 p-3 bg-gradient-to-r from-bright-blue/10 to-bright-purple/10 rounded-2xl">
-                          <div className="w-10 h-10 bg-gradient-to-r from-bright-blue to-bright-purple rounded-full flex items-center justify-center">
-                            <User className="h-6 w-6 text-white" />
+                          <div className="w-10 h-10 bg-gradient-to-r from-bright-blue to-bright-purple rounded-full flex items-center justify-center overflow-hidden">
+                            {user.profilePhoto ? (
+                              <img
+                                src={user.profilePhoto}
+                                alt={user.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <User className="h-6 w-6 text-white" />
+                            )}
                           </div>
                           <div>
                             <p className="font-semibold text-gray-900">{user.name}</p>
@@ -104,6 +130,22 @@ const Navbar: React.FC = () => {
                         </div>
                         
                         <div className="space-y-2">
+                          <button
+                            onClick={() => {
+                              setIsPhotoUploadOpen(true);
+                              setIsUserMenuOpen(false);
+                            }}
+                            className="flex items-center space-x-3 p-3 rounded-2xl text-gray-700 hover:bg-gradient-to-r hover:from-bright-blue/10 hover:to-bright-purple/10 transition-all duration-300 group w-full"
+                          >
+                            <motion.div
+                              whileHover={{ rotate: 360 }}
+                              transition={{ duration: 0.6 }}
+                            >
+                              <Camera className="h-5 w-5 group-hover:text-bright-blue" />
+                            </motion.div>
+                            <span className="font-medium">Update Photo</span>
+                          </button>
+                          
                           <Link
                             to="/profile"
                             className="flex items-center space-x-3 p-3 rounded-2xl text-gray-700 hover:bg-gradient-to-r hover:from-bright-blue/10 hover:to-bright-purple/10 transition-all duration-300 group"
@@ -131,6 +173,29 @@ const Navbar: React.FC = () => {
                             </motion.div>
                             <span className="font-medium">Settings</span>
                           </Link>
+                          
+                          {(() => {
+                            console.log('🔍 Admin Link Check:', {
+                              userRole: user?.role,
+                              condition: user?.role === 'admin',
+                              willShow: user?.role === 'admin'
+                            });
+                            return user?.role === 'admin';
+                          })() && (
+                            <Link
+                              to="/admin"
+                              className="flex items-center space-x-3 p-3 rounded-2xl text-gray-700 hover:bg-gradient-to-r hover:from-purple-500/10 hover:to-purple-600/10 transition-all duration-300 group"
+                              onClick={() => setIsUserMenuOpen(false)}
+                            >
+                              <motion.div
+                                whileHover={{ rotate: 360 }}
+                                transition={{ duration: 0.6 }}
+                              >
+                                <Shield className="h-5 w-5 group-hover:text-purple-600" />
+                              </motion.div>
+                              <span className="font-medium">Admin Panel</span>
+                            </Link>
+                          )}
                           
                           <button
                             onClick={handleLogout}
@@ -222,8 +287,16 @@ const Navbar: React.FC = () => {
                 {user ? (
                   <div className="pt-4 border-t border-gray-200">
                     <div className="flex items-center space-x-3 p-4 bg-gradient-to-r from-bright-green/10 to-bright-teal/10 rounded-2xl mb-4">
-                      <div className="w-10 h-10 bg-gradient-to-r from-bright-green to-bright-teal rounded-full flex items-center justify-center">
-                        <User className="h-6 w-6 text-white" />
+                      <div className="w-10 h-10 bg-gradient-to-r from-bright-green to-bright-teal rounded-full flex items-center justify-center overflow-hidden">
+                        {user.profilePhoto ? (
+                          <img
+                            src={user.profilePhoto}
+                            alt={user.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <User className="h-6 w-6 text-white" />
+                        )}
                       </div>
                       <div>
                         <p className="font-semibold text-gray-900">{user.name}</p>
@@ -232,6 +305,17 @@ const Navbar: React.FC = () => {
                     </div>
                     
                     <div className="space-y-2">
+                      <button
+                        onClick={() => {
+                          setIsPhotoUploadOpen(true);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="flex items-center space-x-3 p-4 rounded-2xl text-gray-700 hover:bg-gradient-to-r hover:from-bright-blue/10 hover:to-bright-purple/10 transition-all duration-300 w-full"
+                      >
+                        <Camera className="h-5 w-5" />
+                        <span className="font-medium">Update Photo</span>
+                      </button>
+                      
                       <Link
                         to="/profile"
                         className="flex items-center space-x-3 p-4 rounded-2xl text-gray-700 hover:bg-gradient-to-r hover:from-bright-blue/10 hover:to-bright-purple/10 transition-all duration-300"
@@ -283,6 +367,12 @@ const Navbar: React.FC = () => {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Profile Photo Upload Modal */}
+      <ProfilePhotoUpload
+        isOpen={isPhotoUploadOpen}
+        onClose={() => setIsPhotoUploadOpen(false)}
+      />
     </nav>
   );
 };

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend-Backend Connection Test</title>
+</head>
+<body>
+    <h1>Frontend-Backend Connection Test</h1>
+    <div id="results"></div>
+
+    <script>
+        const BASE_URL = 'http://localhost:4000';
+        const resultsDiv = document.getElementById('results');
+
+        async function testConnection() {
+            resultsDiv.innerHTML = '<p>Testing connection...</p>';
+
+            try {
+                // Test 1: Basic connection
+                console.log('Testing basic connection...');
+                const response = await fetch(`${BASE_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@globetrotter.com',
+                        password: 'admin123456'
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    resultsDiv.innerHTML += `
+                        <p style="color: green;">✅ Connection successful!</p>
+                        <p>User: ${data.user.name}</p>
+                        <p>Email: ${data.user.email}</p>
+                        <p>Role: ${data.user.role}</p>
+                    `;
+                } else {
+                    const errorText = await response.text();
+                    resultsDiv.innerHTML += `
+                        <p style="color: orange;">⚠️ Connection works but login failed</p>
+                        <p>Status: ${response.status}</p>
+                        <p>Error: ${errorText}</p>
+                    `;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML += `
+                    <p style="color: red;">❌ Connection failed</p>
+                    <p>Error: ${error.message}</p>
+                    <p>Make sure the backend server is running on port 4000</p>
+                `;
+            }
+        }
+
+        // Run test when page loads
+        testConnection();
+    </script>
+</body>
+</html>

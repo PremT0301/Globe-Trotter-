@@ -39,7 +39,7 @@ router.post('/signup', async (req, res) => {
 
     res.status(201).json({
       message: 'Account created successfully! You can now login.',
-      user: { id: user._id, name: user.name, email: user.email, emailVerified: true },
+      user: { id: user._id, name: user.name, email: user.email, emailVerified: true, role: user.role },
     });
   } catch (error) {
     console.error('Signup error:', error);
@@ -104,7 +104,7 @@ router.post('/verify-otp', async (req, res) => {
     res.json({
       message: 'Login successful!',
       token,
-      user: { id: user._id, name: user.name, email: user.email, emailVerified: true },
+      user: { id: user._id, name: user.name, email: user.email, emailVerified: true, role: user.role },
     });
   } catch (error) {
     console.error('Verify OTP error:', error);
@@ -132,7 +132,7 @@ router.post('/login', async (req, res) => {
     res.json({
       message: 'Login successful!',
       token,
-      user: { id: user._id, name: user.name, email: user.email, emailVerified: true, languagePref: user.languagePref },
+      user: { id: user._id, name: user.name, email: user.email, emailVerified: true, languagePref: user.languagePref, role: user.role },
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -198,6 +198,46 @@ router.post('/reset-password', async (req, res) => {
   }
 });
 
+// Change password
+router.post('/change-password', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) return res.status(401).json({ message: 'Access token required' });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const { currentPassword, newPassword } = req.body;
+    
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'Current password and new password are required' });
+    }
+
+    // Verify current password
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!isCurrentPasswordValid) {
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
+
+    // Validate new password
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: 'New password must be at least 6 characters long' });
+    }
+
+    // Hash new password
+    const newPasswordHash = await bcrypt.hash(newPassword, 12);
+    user.passwordHash = newPasswordHash;
+    await user.save();
+
+    res.json({ message: 'Password changed successfully' });
+  } catch (error) {
+    if (error.name === 'JsonWebTokenError') return res.status(401).json({ message: 'Invalid token' });
+    console.error('Change password error:', error);
+    res.status(500).json({ message: 'Internal server error. Please try again later.' });
+  }
+});
+
 // Get current user profile
 router.get('/profile', async (req, res) => {
   try {
@@ -208,7 +248,7 @@ router.get('/profile', async (req, res) => {
     const user = await User.findById(decoded.userId).lean();
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    res.json({ user: { id: String(user._id), name: user.name, email: user.email, emailVerified: user.emailVerified, languagePref: user.languagePref, createdAt: user.createdAt } });
+    res.json({ user: { id: String(user._id), name: user.name, email: user.email, emailVerified: user.emailVerified, languagePref: user.languagePref, role: user.role, createdAt: user.createdAt } });
   } catch (error) {
     if (error.name === 'JsonWebTokenError') return res.status(401).json({ message: 'Invalid token' });
     console.error('Profile error:', error);

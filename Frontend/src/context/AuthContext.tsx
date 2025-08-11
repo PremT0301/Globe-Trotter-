@@ -2,12 +2,15 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { api } from '../lib/api';
 import { useToast } from './ToastContext';
 
+const BASE_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:4000';
+
 interface User {
   id: string;
   name: string;
   email: string;
+  profilePhoto?: string;
   avatar?: string;
-  isAdmin?: boolean;
+  role?: 'user' | 'admin';
   phone?: string;
   location?: string;
   bio?: string;
@@ -15,7 +18,6 @@ interface User {
   preferences?: {
     notifications: boolean;
     emailUpdates: boolean;
-    publicProfile: boolean;
   };
   emailVerified?: boolean;
 }
@@ -28,6 +30,7 @@ interface AuthContextType {
   signup: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   updateUser: (updatedUser: User) => void;
+  uploadProfilePhoto: (file: File) => Promise<void>;
   isAuthenticated: boolean;
 }
 
@@ -64,9 +67,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const { showToast } = useToast();
 
   const login = async (email: string, password: string) => {
-    const res = await api.post<{ token: string; user: User }>('/api/auth/login', { email, password });
-    setUser(res.user);
-    persist(res.user, res.token);
+    console.log('🔐 Attempting login with:', { email, password: '***' });
+    try {
+      const res = await api.post<{ token: string; user: User }>('/api/auth/login', { email, password });
+      console.log('✅ Login successful:', res);
+      setUser(res.user);
+      persist(res.user, res.token);
+    } catch (error) {
+      console.log('❌ Login failed:', error);
+      throw error;
+    }
   };
 
   const generateOTP = async (email: string) => {
@@ -94,6 +104,40 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const updateUser = (updatedUser: User) => {
     setUser(updatedUser);
+    persist(updatedUser);
+  };
+
+  const uploadProfilePhoto = async (file: File) => {
+    try {
+      const formData = new FormData();
+      formData.append('photo', file);
+
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${BASE_URL}/api/photos/profile`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload photo');
+      }
+
+      const result = await response.json();
+      
+      // Update user with new profile photo
+      const updatedUser = { ...user!, profilePhoto: result.photoUrl };
+      setUser(updatedUser);
+      persist(updatedUser);
+      
+      showToast('success', 'Photo Updated', 'Profile photo uploaded successfully!');
+    } catch (error) {
+      console.error('Error uploading photo:', error);
+      showToast('error', 'Upload Failed', 'Failed to upload profile photo. Please try again.');
+      throw error;
+    }
   };
 
   const value = {
@@ -104,6 +148,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     signup,
     logout,
     updateUser,
+    uploadProfilePhoto,
     isAuthenticated: !!user
   };
 

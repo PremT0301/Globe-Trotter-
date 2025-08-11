@@ -41,12 +41,15 @@ const LoginPage: React.FC = () => {
     
     if (!validateForm()) return;
     
+    console.log('🚀 Login form submitted with:', { email, password: '***' });
     setIsLoading(true);
     try {
       await login(email, password);
+      console.log('✅ Login completed successfully');
       showToast('success', 'Welcome back!', 'Successfully logged in.');
       navigate('/dashboard');
     } catch (error) {
+      console.log('❌ Login error in form:', error);
       setErrors({ email: 'Invalid email or password' });
       showToast('error', 'Login failed', 'Please check your credentials and try again.');
     } finally {

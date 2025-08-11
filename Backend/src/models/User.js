@@ -5,11 +5,21 @@ const userSchema = new mongoose.Schema(
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     passwordHash: { type: String, required: true },
-    profilePhoto: { type: String },
+    profilePhoto: { 
+      type: String,
+      default: null,
+      validate: {
+        validator: function(v) {
+          return v === null || (typeof v === 'string' && v.length > 0);
+        },
+        message: 'Profile photo must be a valid URL string or null'
+      }
+    },
     languagePref: { type: String },
     emailVerified: { type: Boolean, default: false },
     emailVerificationToken: { type: String, unique: true, sparse: true },
     emailVerificationExpires: { type: Date },
+    role: { type: String, enum: ['user', 'admin'], default: 'user' },
   },
   { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } }
 );

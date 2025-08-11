@@ -94,7 +94,7 @@ const Dashboard: React.FC = () => {
     },
     { 
       label: 'Travel Days', 
-      value: '45', 
+      value: '0', 
       icon: <Clock className="h-6 w-6" />, 
       color: 'from-orange-500 to-amber-500',
       bgColor: 'bg-orange-50',

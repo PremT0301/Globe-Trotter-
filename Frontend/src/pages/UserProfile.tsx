@@ -4,9 +4,10 @@ import { User, Camera, Save, Lock, Mail, Phone, MapPin, Calendar, Globe, Heart, 
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { api } from '../lib/api';
 
 const UserProfile: React.FC = () => {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, uploadProfilePhoto } = useAuth();
   const { showToast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -22,8 +23,7 @@ const UserProfile: React.FC = () => {
     dateOfBirth: user?.dateOfBirth || '',
     preferences: user?.preferences || {
       notifications: true,
-      emailUpdates: true,
-      publicProfile: false
+      emailUpdates: true
     }
   });
 
@@ -93,11 +93,32 @@ const UserProfile: React.FC = () => {
       return;
     }
 
+    if (!passwordData.currentPassword) {
+      showToast('error', 'Current Password Required', 'Please enter your current password.');
+      return;
+    }
+
     setIsLoading(true);
     try {
-      // Mock API call - in real app, this would change the password
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('🔄 Attempting to change password...');
+      console.log('Current password length:', passwordData.currentPassword.length);
+      console.log('New password length:', passwordData.newPassword.length);
       
+      // Check if user is logged in
+      const token = localStorage.getItem('token');
+      console.log('Token exists:', !!token);
+      console.log('User:', user);
+      console.log('API Base URL:', (import.meta as any).env?.VITE_API_URL || 'http://localhost:4000');
+      
+      // Call the backend API to change password
+      const response = await api.post('/api/auth/change-password', {
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword
+      });
+      
+      console.log('✅ Password change successful:', response.data);
+      
+      // Clear the form
       setPasswordData({
         currentPassword: '',
         newPassword: '',
@@ -105,37 +126,55 @@ const UserProfile: React.FC = () => {
       });
       
       showToast('success', 'Password Changed', 'Your password has been successfully updated.');
-    } catch (error) {
-      showToast('error', 'Password Change Failed', 'Failed to change password. Please try again.');
+    } catch (error: any) {
+      console.error('❌ Password change error:', error);
+      
+      let errorMessage = 'Failed to change password. Please try again.';
+      
+      // Handle different types of errors
+      if (error.response) {
+        // Server responded with error status
+        console.error('Error status:', error.response.status);
+        console.error('Error data:', error.response.data);
+        
+        if (error.response.data && typeof error.response.data === 'object') {
+          errorMessage = error.response.data.message || errorMessage;
+        } else if (typeof error.response.data === 'string') {
+          errorMessage = error.response.data;
+        }
+      } else if (error.request) {
+        // Request was made but no response received
+        console.error('No response received');
+        errorMessage = 'No response from server. Please check your connection.';
+      } else {
+        // Something else happened
+        console.error('Error message:', error.message);
+        errorMessage = error.message || errorMessage;
+      }
+      
+      showToast('error', 'Password Change Failed', errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Mock avatar upload - in real app, this would upload to a server
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const avatarUrl = event.target?.result as string;
-        if (updateUser) {
-          updateUser({
-            ...user!,
-            avatar: avatarUrl
-          });
-        }
-        showToast('success', 'Avatar Updated', 'Your profile picture has been updated.');
-      };
-      reader.readAsDataURL(file);
+      try {
+        await uploadProfilePhoto(file);
+        showToast('success', 'Profile Photo Updated', 'Your profile picture has been updated successfully!');
+      } catch (error) {
+        showToast('error', 'Upload Failed', 'Failed to update profile picture. Please try again.');
+      }
     }
   };
 
   const travelStats = [
-    { label: 'Countries Visited', value: '12', icon: <Globe className="h-5 w-5" />, color: 'from-blue-500 to-indigo-500' },
-    { label: 'Trips Completed', value: '8', icon: <Plane className="h-5 w-5" />, color: 'from-green-500 to-teal-500' },
-    { label: 'Days Traveling', value: '45', icon: <Calendar className="h-5 w-5" />, color: 'from-purple-500 to-pink-500' },
-    { label: 'Favorite Destinations', value: '6', icon: <Heart className="h-5 w-5" />, color: 'from-orange-500 to-amber-500' }
+    { label: 'Countries Visited', value: '0', icon: <Globe className="h-5 w-5" />, color: 'from-blue-500 to-indigo-500' },
+    { label: 'Trips Completed', value: '0', icon: <Plane className="h-5 w-5" />, color: 'from-green-500 to-teal-500' },
+    { label: 'Days Traveling', value: '0', icon: <Calendar className="h-5 w-5" />, color: 'from-purple-500 to-pink-500' },
+    { label: 'Favorite Destinations', value: '0', icon: <Heart className="h-5 w-5" />, color: 'from-orange-500 to-amber-500' }
   ];
 
   // Enhanced background particles with more variety
@@ -189,11 +228,17 @@ const UserProfile: React.FC = () => {
                     whileHover={{ scale: 1.05 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <img
-                      src={user?.avatar || 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=1'}
-                      alt="Profile"
-                      className="w-full h-full object-cover"
-                    />
+                    {user?.profilePhoto ? (
+                      <img
+                        src={user.profilePhoto}
+                        alt="Profile"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-r from-bright-blue to-bright-purple flex items-center justify-center">
+                        <User className="h-16 w-16 text-white" />
+                      </div>
+                    )}
                   </motion.div>
                   <motion.label
                     className="absolute bottom-2 right-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white p-2 rounded-full cursor-pointer shadow-lg"
@@ -426,21 +471,19 @@ const UserProfile: React.FC = () => {
                         whileHover={{ rotate: 360, scale: 1.1 }}
                         transition={{ duration: 0.6 }}
                       >
-                        <div className="text-white">
-                          {key === 'notifications' && <Bell className="h-4 w-4" />}
-                          {key === 'emailUpdates' && <Mail className="h-4 w-4" />}
-                          {key === 'publicProfile' && <Globe className="h-4 w-4" />}
-                        </div>
+                                                 <div className="text-white">
+                           {key === 'notifications' && <Bell className="h-4 w-4" />}
+                           {key === 'emailUpdates' && <Mail className="h-4 w-4" />}
+                         </div>
                       </motion.div>
                       <div>
                         <p className="font-semibold text-gray-900 capitalize">
                           {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
                         </p>
-                        <p className="text-sm text-gray-600">
-                          {key === 'notifications' && 'Receive push notifications'}
-                          {key === 'emailUpdates' && 'Get email updates about your trips'}
-                          {key === 'publicProfile' && 'Make your profile visible to other travelers'}
-                        </p>
+                                                 <p className="text-sm text-gray-600">
+                           {key === 'notifications' && 'Receive push notifications'}
+                           {key === 'emailUpdates' && 'Get email updates about your trips'}
+                         </p>
                       </div>
                     </div>
                     <motion.button
