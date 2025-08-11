@@ -6,6 +6,9 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import AdminDashboard from './pages/AdminDashboard';
 import Navbar from './components/Navbar';
+import AdminDashboard from './pages/AdminDashboard';
+import ItineraryBuilder from './pages/ItineraryBuilder';
+import ItineraryView from './pages/ItineraryView';
 import ItineraryBuilder from './pages/ItineraryBuilder';
 import TripBudget from './pages/TripBudget';
 import TripCalendar from './pages/TripCalendar';
@@ -25,6 +28,9 @@ function App() {
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
+              <Route path="/admin" element={<><Navbar/><AdminDashboard /></>} />
+              <Route path="/itinerary-builder" element={<><Navbar /><ItineraryBuilder /></>} />
+              <Route path="/itinerary-view" element={<><Navbar /><ItineraryView /></>} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/itinerary-builder" element={<ItineraryBuilder />} />
               <Route path="/trip-budget" element={<TripBudget />} />
