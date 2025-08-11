@@ -5,6 +5,10 @@ import { AuthProvider } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import Navbar from './components/Navbar';
+import UserProfile from './pages/UserProfile';
+import AdminDashboard from './pages/AdminDashboard';
+import ItineraryBuilder from './pages/ItineraryBuilder';
+import ItineraryView from './pages/ItineraryView';
 
 function App() {
   return (
@@ -16,8 +20,10 @@ function App() {
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/itinerary-builder" element={<ItineraryBuilder />} />
+              <Route path="/profile" element={<><Navbar /><UserProfile /></>} />
+              <Route path="/admin" element={<><Navbar/><AdminDashboard /></>} />
+              <Route path="/itinerary-builder" element={<><Navbar /><ItineraryBuilder /></>} />
+              <Route path="/itinerary-view" element={<><Navbar /><ItineraryView /></>} />
             </Routes>
           </AnimatePresence>
         </div>
