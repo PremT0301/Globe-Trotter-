@@ -9,7 +9,7 @@ const itineraryRoutes = require('./routes/itinerary');
 const budgetRoutes = require('./routes/budgets');
 const sharedRoutes = require('./routes/shared');
 const adminRoutes = require('./routes/admin');
-const { prisma } = require('./lib/prisma');
+const { connectToDatabase } = require('./lib/mongoose');
 
 dotenv.config();
 
@@ -20,7 +20,7 @@ app.use(express.json());
 
 app.get('/health', async (req, res) => {
   try {
-    await prisma.$queryRaw`SELECT 1`;
+    await connectToDatabase(process.env.MONGODB_URI);
     res.json({ status: 'ok' });
   } catch (err) {
     res.status(500).json({ status: 'error', message: err.message });
@@ -37,8 +37,16 @@ app.use('/api/shared', sharedRoutes);
 app.use('/api/admin', adminRoutes);
 
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+
+connectToDatabase(process.env.MONGODB_URI)
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('Failed to connect to MongoDB:', err);
+    process.exit(1);
+  });
 
 

@@ -1,24 +1,24 @@
 const express = require('express');
-const { prisma } = require('../lib/prisma');
-const { authenticate } = require('../middleware/auth');
+const { authenticateToken } = require('../middleware/auth');
+const Trip = require('../models/Trip');
+const Itinerary = require('../models/Itinerary');
+const Budget = require('../models/Budget');
 
 const router = express.Router();
 
-router.use(authenticate);
+router.use(authenticateToken);
 
 // Create trip
 router.post('/', async (req, res) => {
   try {
     const { tripName, description, startDate, endDate, coverPhoto } = req.body;
-    const trip = await prisma.trip.create({
-      data: {
-        userId: req.user.userId,
-        tripName,
-        description,
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
-        coverPhoto
-      }
+    const trip = await Trip.create({
+      userId: req.user.id,
+      tripName,
+      description,
+      startDate: new Date(startDate),
+      endDate: new Date(endDate),
+      coverPhoto,
     });
     res.status(201).json(trip);
   } catch (e) {
@@ -29,7 +29,7 @@ router.post('/', async (req, res) => {
 // List my trips
 router.get('/', async (req, res) => {
   try {
-    const trips = await prisma.trip.findMany({ where: { userId: req.user.userId }, orderBy: { createdAt: 'desc' } });
+    const trips = await Trip.find({ userId: req.user.id }).sort({ createdAt: -1 }).lean();
     res.json(trips);
   } catch (e) {
     res.status(500).json({ message: e.message });
@@ -39,16 +39,17 @@ router.get('/', async (req, res) => {
 // Get a trip with itinerary and budget
 router.get('/:id', async (req, res) => {
   try {
-    const id = Number(req.params.id);
-    const trip = await prisma.trip.findFirst({
-      where: { id, userId: req.user.userId },
-      include: {
-        itineraries: { include: { city: true, activity: true }, orderBy: { date: 'asc' } },
-        budget: true
-      }
-    });
+    const id = req.params.id;
+    const trip = await Trip.findOne({ _id: id, userId: req.user.id }).lean();
     if (!trip) return res.status(404).json({ message: 'Not found' });
-    res.json(trip);
+
+    const itineraries = await Itinerary.find({ tripId: id })
+      .populate('cityId')
+      .populate('activityId')
+      .sort({ date: 1 })
+      .lean();
+    const budget = await Budget.findOne({ tripId: id }).lean();
+    res.json({ ...trip, itineraries, budget });
   } catch (e) {
     res.status(500).json({ message: e.message });
   }
@@ -57,12 +58,22 @@ router.get('/:id', async (req, res) => {
 // Update trip
 router.put('/:id', async (req, res) => {
   try {
-    const id = Number(req.params.id);
+    const id = req.params.id;
     const { tripName, description, startDate, endDate, coverPhoto } = req.body;
-    const updated = await prisma.trip.update({
-      where: { id },
-      data: { tripName, description, startDate: startDate ? new Date(startDate) : undefined, endDate: endDate ? new Date(endDate) : undefined, coverPhoto }
-    });
+    const updated = await Trip.findOneAndUpdate(
+      { _id: id, userId: req.user.id },
+      {
+        $set: {
+          ...(tripName !== undefined && { tripName }),
+          ...(description !== undefined && { description }),
+          ...(startDate && { startDate: new Date(startDate) }),
+          ...(endDate && { endDate: new Date(endDate) }),
+          ...(coverPhoto !== undefined && { coverPhoto }),
+        },
+      },
+      { new: true }
+    ).lean();
+    if (!updated) return res.status(404).json({ message: 'Not found' });
     res.json(updated);
   } catch (e) {
     res.status(500).json({ message: e.message });
@@ -72,8 +83,9 @@ router.put('/:id', async (req, res) => {
 // Delete trip
 router.delete('/:id', async (req, res) => {
   try {
-    const id = Number(req.params.id);
-    await prisma.trip.delete({ where: { id } });
+    const id = req.params.id;
+    const result = await Trip.deleteOne({ _id: id, userId: req.user.id });
+    if (result.deletedCount === 0) return res.status(404).json({ message: 'Not found' });
     res.json({ ok: true });
   } catch (e) {
     res.status(500).json({ message: e.message });

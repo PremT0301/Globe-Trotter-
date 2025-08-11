@@ -1,19 +1,17 @@
 const express = require('express');
-const { prisma } = require('../lib/prisma');
+const Activity = require('../models/Activity');
 
 const router = express.Router();
 
 router.get('/', async (req, res) => {
   try {
     const { cityId, type, q } = req.query;
-    const where = {
-      AND: [
-        cityId ? { cityId: Number(cityId) } : {},
-        type ? { type: { equals: String(type), mode: 'insensitive' } } : {},
-        q ? { name: { contains: String(q), mode: 'insensitive' } } : {}
-      ]
-    };
-    const activities = await prisma.activity.findMany({ where, orderBy: [{ cost: 'asc' }] });
+    const filters = {};
+    if (cityId) filters.cityId = cityId;
+    if (type) filters.type = { $regex: String(type), $options: 'i' };
+    if (q) filters.name = { $regex: String(q), $options: 'i' };
+
+    const activities = await Activity.find(filters).sort({ cost: 1 }).lean();
     res.json(activities);
   } catch (e) {
     res.status(500).json({ message: e.message });

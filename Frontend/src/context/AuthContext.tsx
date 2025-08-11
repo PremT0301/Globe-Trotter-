@@ -3,7 +3,7 @@ import { api } from '../lib/api';
 import { useToast } from './ToastContext';
 
 interface User {
-  id: number;
+  id: string;
   name: string;
   email: string;
   avatar?: string;
@@ -17,11 +17,14 @@ interface User {
     emailUpdates: boolean;
     publicProfile: boolean;
   };
+  emailVerified?: boolean;
 }
 
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
+  loginWithOTP: (email: string, otp: string) => Promise<void>;
+  generateOTP: (email: string) => Promise<void>;
   signup: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   updateUser: (updatedUser: User) => void;
@@ -66,9 +69,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     persist(res.user, res.token);
   };
 
+  const generateOTP = async (email: string) => {
+    await api.post('/api/auth/generate-otp', { email });
+  };
+
+  const loginWithOTP = async (email: string, otp: string) => {
+    const res = await api.post<{ token: string; user: User }>('/api/auth/verify-otp', { email, otp });
+    setUser(res.user);
+    persist(res.user, res.token);
+  };
+
   const signup = async (name: string, email: string, password: string) => {
     await api.post('/api/auth/signup', { name, email, password });
-    await login(email, password);
   };
 
   const logout = () => {
@@ -87,6 +99,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const value = {
     user,
     login,
+    loginWithOTP,
+    generateOTP,
     signup,
     logout,
     updateUser,

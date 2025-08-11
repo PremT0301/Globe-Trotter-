@@ -2,26 +2,22 @@
 
 ## Quick start
 
-1. Copy `.env.example` to `.env` and fill values:
+1. Create `.env` and fill values:
 
 ```
-DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/globetrotter?schema=public"
+MONGODB_URI=mongodb+srv://jjpatel24092004:Jay@24092004@cluster0.vvgv3hy.mongodb.net/
 PORT=4000
 JWT_SECRET=change_me_in_production
+FRONTEND_URL=http://localhost:3000
 ```
 
-2. Install deps and generate Prisma client:
+2. Install deps:
 
 ```
 npm install
-npx prisma generate
 ```
 
-3. Run migrations:
-
-```
-npx prisma migrate dev --name init
-```
+3. (Optional) Seed your MongoDB with initial data using your own scripts.
 
 4. Start server:
 

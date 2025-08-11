@@ -57,8 +57,8 @@ const SignupPage: React.FC = () => {
     setIsLoading(true);
     try {
       await signup(formData.name, formData.email, formData.password);
-      showToast('success', 'Account created!', 'Welcome to GlobeTrotter!');
-      navigate('/dashboard');
+      showToast('success', 'Account created!', 'You can now login with your email and password, or use OTP login.');
+      navigate('/login');
     } catch (error) {
       setErrors({ email: 'Failed to create account' });
       showToast('error', 'Signup failed', 'Please try again or contact support.');

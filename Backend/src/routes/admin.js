@@ -1,13 +1,13 @@
 const express = require('express');
-const { prisma } = require('../lib/prisma');
-const { authenticate } = require('../middleware/auth');
+const { requireAdmin } = require('../middleware/auth');
+const AdminStat = require('../models/AdminStat');
 
 const router = express.Router();
-router.use(authenticate);
+router.use(requireAdmin);
 
 router.get('/stats', async (req, res) => {
   try {
-    const stats = await prisma.adminStat.findMany({ orderBy: { date: 'desc' }, take: 100 });
+    const stats = await AdminStat.find().sort({ date: -1 }).limit(100).lean();
     res.json(stats);
   } catch (e) {
     res.status(500).json({ message: e.message });

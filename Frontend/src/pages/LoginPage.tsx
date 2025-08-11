@@ -182,6 +182,18 @@ const LoginPage: React.FC = () => {
             </div>
           </div>
 
+          <div className="text-center">
+            <span className="text-sm text-gray-600">Or</span>
+            <div className="mt-2">
+              <Link
+                to="/otp-login"
+                className="text-sm text-blue-600 hover:text-blue-500 font-medium"
+              >
+                Login with OTP instead
+              </Link>
+            </div>
+          </div>
+
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}

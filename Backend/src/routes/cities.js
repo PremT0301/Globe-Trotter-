@@ -1,6 +1,6 @@
 const express = require('express');
-const { prisma } = require('../lib/prisma');
-const { authenticate } = require('../middleware/auth');
+const City = require('../models/City');
+const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -8,24 +8,27 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try {
     const { q, country } = req.query;
-    const where = {
-      AND: [
-        q ? { OR: [{ name: { contains: String(q), mode: 'insensitive' } }, { country: { contains: String(q), mode: 'insensitive' } }] } : {},
-        country ? { country: { equals: String(country), mode: 'insensitive' } } : {}
-      ]
-    };
-    const cities = await prisma.city.findMany({ where, orderBy: [{ popularityScore: 'desc' }, { name: 'asc' }] });
+    const filters = {};
+    if (q) {
+      filters.$or = [
+        { name: { $regex: String(q), $options: 'i' } },
+        { country: { $regex: String(q), $options: 'i' } },
+      ];
+    }
+    if (country) filters.country = { $regex: String(country), $options: 'i' };
+
+    const cities = await City.find(filters).sort({ popularityScore: -1, name: 1 }).lean();
     res.json(cities);
   } catch (e) {
     res.status(500).json({ message: e.message });
   }
 });
 
-// Admin add city (optional: protect with auth later)
-router.post('/', authenticate, async (req, res) => {
+// Admin add city
+router.post('/', authenticateToken, async (req, res) => {
   try {
     const { name, country, costIndex, popularityScore } = req.body;
-    const city = await prisma.city.create({ data: { name, country, costIndex, popularityScore } });
+    const city = await City.create({ name, country, costIndex, popularityScore });
     res.status(201).json(city);
   } catch (e) {
     res.status(500).json({ message: e.message });
