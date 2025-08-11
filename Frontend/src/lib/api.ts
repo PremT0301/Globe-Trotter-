@@ -10,8 +10,11 @@ console.log('🔧 API Configuration:', {
 
 function getAuthToken(): string | null {
   try {
-    return localStorage.getItem('token');
+    const token = localStorage.getItem('token');
+    console.log('🔑 API: Token from localStorage:', token ? 'Present' : 'Missing');
+    return token;
   } catch {
+    console.log('❌ API: Error getting token from localStorage');
     return null;
   }
 }
@@ -22,52 +25,21 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     ...(options.headers || {}),
   };
   const token = getAuthToken();
-  if (token) headers['Authorization'] = `Bearer ${token}`;
-
-  const url = `${BASE_URL}${path}`;
-  console.log('🌐 Making request:', {
-    method: options.method || 'GET',
-    url: url,
-    headers: headers,
-    body: options.body ? JSON.parse(options.body as string) : undefined
-  });
-
-  const res = await fetch(url, { ...options, headers });
-  
-  console.log('📡 Response received:', {
-    status: res.status,
-    statusText: res.statusText,
-    headers: Object.fromEntries(res.headers.entries())
-  });
-  
-  if (!res.ok) {
-    const contentType = res.headers.get('content-type') || '';
-    let errorData;
-    
-    try {
-      if (contentType.includes('application/json')) {
-        errorData = await res.json();
-      } else {
-        errorData = await res.text();
-      }
-    } catch {
-      errorData = `HTTP ${res.status}`;
-    }
-    
-    console.log('❌ Request failed:', {
-      status: res.status,
-      errorData: errorData
-    });
-    
-    const error = new Error() as any;
-    error.response = {
-      status: res.status,
-      data: errorData
-    };
-    error.request = true;
-    throw error;
+  if (token) {
+    (headers as any)['Authorization'] = `Bearer ${token}`;
+    console.log('✅ API: Adding Authorization header');
+  } else {
+    console.log('⚠️ API: No token found, request will be unauthenticated');
   }
-  
+
+  console.log('🌐 API: Making request to:', `${BASE_URL}${path}`);
+  const res = await fetch(`${BASE_URL}${path}`, { ...options, headers });
+  if (!res.ok) {
+    console.log('❌ API: Request failed with status:', res.status);
+    const text = await res.text();
+    console.log('❌ API: Error response:', text);
+    throw new Error(text || `HTTP ${res.status}`);
+  }
   const contentType = res.headers.get('content-type') || '';
   if (contentType.includes('application/json')) {
     const data = await res.json();

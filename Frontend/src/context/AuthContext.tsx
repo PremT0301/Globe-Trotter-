@@ -48,8 +48,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(() => {
     try {
       const stored = localStorage.getItem('user');
+      const token = localStorage.getItem('token');
+      console.log('AuthContext: Initializing with stored user:', stored ? 'Present' : 'Missing');
+      console.log('AuthContext: Initializing with stored token:', token ? 'Present' : 'Missing');
       return stored ? JSON.parse(stored) : null;
     } catch {
+      console.log('AuthContext: Error reading from localStorage');
       return null;
     }
   });

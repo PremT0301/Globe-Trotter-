@@ -9,7 +9,8 @@ router.use(authenticateToken);
 // Add itinerary entry
 router.post('/', async (req, res) => {
   try {
-    const { tripId, cityId, date, activityId, orderIndex } = req.body;
+    const { tripId, cityId, date, activityId, orderIndex, notes } = req.body;
+    console.log('Backend: Creating itinerary item:', { tripId, cityId, date, activityId, orderIndex, notes });
     const trip = await Trip.findOne({ _id: tripId, userId: req.user.id }).lean();
     if (!trip) return res.status(403).json({ message: 'Forbidden' });
     const item = await Itinerary.create({
@@ -18,9 +19,12 @@ router.post('/', async (req, res) => {
       date: new Date(date),
       activityId: activityId || null,
       orderIndex: Number(orderIndex) || 0,
+      notes: notes || null,
     });
+    console.log('Backend: Created itinerary item:', item);
     res.status(201).json(item);
   } catch (e) {
+    console.error('Backend: Error creating itinerary item:', e);
     res.status(500).json({ message: e.message });
   }
 });
@@ -35,6 +39,7 @@ router.get('/:tripId', async (req, res) => {
       .populate('activityId')
       .sort({ date: 1, orderIndex: 1 })
       .lean();
+    console.log('Backend: Returning itinerary items:', items);
     res.json(items);
   } catch (e) {
     res.status(500).json({ message: e.message });

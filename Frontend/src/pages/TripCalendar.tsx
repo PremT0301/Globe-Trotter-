@@ -1,80 +1,78 @@
-import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, ChevronLeft, ChevronRight, Clock, MapPin, Plus, Edit3 } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, Clock, MapPin, Plus, Edit3, ArrowLeft } from 'lucide-react';
+import { api } from '../lib/api';
+import { useToast } from '../context/ToastContext';
 
 const TripCalendar: React.FC = () => {
   const { tripId } = useParams();
+  const { showToast } = useToast();
   const [selectedDate, setSelectedDate] = useState('2024-06-15');
   const [viewMode, setViewMode] = useState<'calendar' | 'timeline'>('calendar');
+  const [tripData, setTripData] = useState<any>(null);
+  const [itineraryData, setItineraryData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const tripDates = {
+  // Fetch trip and itinerary data
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!tripId) return;
+      
+      try {
+        setLoading(true);
+        const trip = await api.get(`/api/trips/${tripId}`) as any;
+        const itinerary = await api.get(`/api/itinerary/${tripId}`) as any[];
+        
+        setTripData(trip);
+        setItineraryData(itinerary);
+        setSelectedDate(trip.startDate);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        showToast('error', 'Error', 'Failed to load trip data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [tripId, showToast]);
+
+  const tripDates = tripData ? {
+    start: tripData.startDate,
+    end: tripData.endDate
+  } : {
     start: '2024-06-15',
     end: '2024-06-30'
   };
 
-  const activities = [
-    {
-      id: '1',
-      date: '2024-06-15',
-      time: '10:00',
-      title: 'Arrive at Charles de Gaulle Airport',
-      location: 'CDG Airport, Paris',
-      duration: '1 hour',
-      type: 'transport',
-      color: 'bg-green-500'
-    },
-    {
-      id: '2',
-      date: '2024-06-15',
-      time: '14:00',
-      title: 'Check-in at Hotel Le Marais',
-      location: '12 Rue des Archives, Paris',
-      duration: '30 minutes',
-      type: 'hotel',
-      color: 'bg-purple-500'
-    },
-    {
-      id: '3',
-      date: '2024-06-15',
-      time: '16:00',
-      title: 'Visit Notre-Dame Cathedral',
-      location: 'Île de la Cité, Paris',
-      duration: '2 hours',
-      type: 'attraction',
-      color: 'bg-blue-500'
-    },
-    {
-      id: '4',
-      date: '2024-06-16',
-      time: '09:00',
-      title: 'Visit Louvre Museum',
-      location: 'Rue de Rivoli, Paris',
-      duration: '4 hours',
-      type: 'attraction',
-      color: 'bg-blue-500'
-    },
-    {
-      id: '5',
-      date: '2024-06-16',
-      time: '13:30',
-      title: 'Lunch at Café de Flore',
-      location: '172 Boulevard Saint-Germain, Paris',
-      duration: '1.5 hours',
-      type: 'restaurant',
-      color: 'bg-orange-500'
-    },
-    {
-      id: '6',
-      date: '2024-06-17',
-      time: '10:00',
-      title: 'Visit Eiffel Tower',
-      location: 'Champ de Mars, Paris',
-      duration: '3 hours',
-      type: 'attraction',
-      color: 'bg-blue-500'
+  // Convert itinerary data to activities format
+  const activities = itineraryData.map((item, index) => {
+    try {
+      const activityData = item.notes ? JSON.parse(item.notes) : {};
+      return {
+        id: item._id || index.toString(),
+        date: item.date.split('T')[0],
+        time: activityData.time || '09:00',
+        title: activityData.title || 'Activity',
+        location: activityData.location || 'Location',
+        duration: activityData.duration || '1 hour',
+        type: activityData.type || 'attraction',
+        color: getActivityColor(activityData.type || 'attraction')
+      };
+    } catch (error) {
+      return {
+        id: item._id || index.toString(),
+        date: item.date.split('T')[0],
+        time: '09:00',
+        title: 'Activity',
+        location: 'Location',
+        duration: '1 hour',
+        type: 'attraction',
+        color: 'bg-blue-500'
+      };
     }
-  ];
+  });
 
   // Generate calendar days
   const generateCalendarDays = () => {
@@ -115,6 +113,40 @@ const TripCalendar: React.FC = () => {
     }
   };
 
+  const getActivityColor = (type: string) => {
+    switch (type) {
+      case 'attraction': return 'bg-blue-500';
+      case 'restaurant': return 'bg-orange-500';
+      case 'hotel': return 'bg-purple-500';
+      case 'transport': return 'bg-green-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading trip calendar...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!tripData) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600 mb-4">Trip not found</p>
+          <Link to="/my-trips" className="text-blue-600 hover:text-blue-700">
+            Back to My Trips
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -125,8 +157,25 @@ const TripCalendar: React.FC = () => {
           className="flex items-center justify-between mb-8"
         >
           <div>
+            <div className="flex items-center mb-2">
+              <Link to={`/itinerary-builder/${tripId}`} className="mr-4">
+                <motion.button
+                  className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-1" />
+                  Back to Builder
+                </motion.button>
+              </Link>
+            </div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Trip Calendar</h1>
-            <p className="text-gray-600">Visual timeline of your travel itinerary</p>
+            <p className="text-gray-600">
+              {tripData.title} - {tripData.destination}
+            </p>
+            <p className="text-sm text-gray-500">
+              {new Date(tripData.startDate).toLocaleDateString()} - {new Date(tripData.endDate).toLocaleDateString()}
+            </p>
           </div>
           <div className="flex items-center space-x-4">
             <div className="flex bg-gray-200 rounded-lg p-1">

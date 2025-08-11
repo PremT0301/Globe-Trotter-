@@ -1,13 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { DollarSign, Plus, Edit3, Trash2, PieChart as LucidePieChart, BarChart3, TrendingUp, TrendingDown } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { api } from '../lib/api';
 
 const TripBudget: React.FC = () => {
   const { tripId } = useParams();
   const [showAddExpense, setShowAddExpense] = useState(false);
+  const [expenses, setExpenses] = useState<any[]>([]);
+  const [budgetData, setBudgetData] = useState({
+    totalBudget: 0,
+    totalSpent: 0,
+    remaining: 0
+  });
+  const [loading, setLoading] = useState(true);
   const [newExpense, setNewExpense] = useState({
     category: 'accommodation',
     amount: '',
@@ -16,30 +24,43 @@ const TripBudget: React.FC = () => {
   });
   const { showToast } = useToast();
 
-  const budgetData = {
-    totalBudget: 3500,
-    totalSpent: 2340,
-    remaining: 1160
-  };
-
-  const expenses = [
-    { id: '1', category: 'accommodation', amount: 800, description: 'Hotel Le Marais - 5 nights', date: '2024-06-15' },
-    { id: '2', category: 'flights', amount: 650, description: 'Round trip flights NYC-Paris', date: '2024-06-10' },
-    { id: '3', category: 'food', amount: 420, description: 'Restaurants and cafes', date: '2024-06-16' },
-    { id: '4', category: 'activities', amount: 280, description: 'Museum tickets and tours', date: '2024-06-17' },
-    { id: '5', category: 'transport', amount: 120, description: 'Metro passes and taxis', date: '2024-06-15' },
-    { id: '6', category: 'shopping', amount: 70, description: 'Souvenirs and gifts', date: '2024-06-18' }
-  ];
-
   const categories = [
     { id: 'accommodation', name: 'Accommodation', icon: '🏨', color: '#3B82F6' },
     { id: 'flights', name: 'Flights', icon: '✈️', color: '#10B981' },
-    { id: 'food', name: 'Food & Dining', icon: '🍽️', color: '#F59E0B' },
+    { id: 'Food&Dining', name: 'Food & Dining', icon: '🍽️', color: '#F59E0B' },
     { id: 'activities', name: 'Activities', icon: '🎯', color: '#8B5CF6' },
     { id: 'transport', name: 'Transport', icon: '🚗', color: '#EF4444' },
-    { id: 'shopping', name: 'Shopping', icon: '🛍️', color: '#06B6D4' },
-    { id: 'other', name: 'Other', icon: '📝', color: '#6B7280' }
+    { id: 'shopping', name: 'Shopping', icon: '🛍️', color: '#06B6D4' }
   ];
+
+  // Fetch expenses and budget data
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!tripId) return;
+      
+      try {
+        setLoading(true);
+        const [expensesData, budgetSummary] = await Promise.all([
+          api.get(`/api/expenses/${tripId}`) as Promise<any[]>,
+          api.get(`/api/expenses/${tripId}/summary`) as Promise<any>
+        ]);
+        
+        setExpenses(expensesData);
+        setBudgetData({
+          totalBudget: budgetSummary.totalBudget,
+          totalSpent: budgetSummary.totalSpent,
+          remaining: budgetSummary.remaining
+        });
+      } catch (error) {
+        console.error('Error fetching budget data:', error);
+        showToast('error', 'Error', 'Failed to load budget data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [tripId, showToast]);
 
   // Calculate spending by category
   const spendingByCategory = categories.map(category => {
@@ -54,35 +75,89 @@ const TripBudget: React.FC = () => {
   }).filter(item => item.value > 0);
 
   // Daily spending data
-  const dailySpending = [
-    { date: 'Jun 15', amount: 920 },
-    { date: 'Jun 16', amount: 420 },
-    { date: 'Jun 17', amount: 280 },
-    { date: 'Jun 18', amount: 70 },
-    { date: 'Jun 19', amount: 0 },
-    { date: 'Jun 20', amount: 0 }
-  ];
+  const dailySpending = expenses.reduce((acc: any[], expense) => {
+    const date = new Date(expense.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const existing = acc.find((item: any) => item.date === date);
+    if (existing) {
+      existing.amount += expense.amount;
+    } else {
+      acc.push({ date, amount: expense.amount });
+    }
+    return acc;
+  }, [] as any[]).sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-  const handleAddExpense = (e: React.FormEvent) => {
+  const handleAddExpense = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, this would save to the backend
-    console.log('Adding expense:', newExpense);
-    showToast('success', 'Expense added!', 'Your expense has been added to the budget.');
-    setShowAddExpense(false);
-    setNewExpense({
-      category: 'accommodation',
-      amount: '',
-      description: '',
-      date: new Date().toISOString().split('T')[0]
-    });
+    
+    if (!tripId) return;
+    
+    try {
+      const response = await api.post(`/api/expenses/${tripId}`, {
+        ...newExpense,
+        amount: parseFloat(newExpense.amount)
+      });
+      
+      setExpenses(prev => [response, ...prev]);
+      
+      // Update budget summary
+      const budgetSummary = await api.get(`/api/expenses/${tripId}/summary`) as any;
+      setBudgetData({
+        totalBudget: budgetSummary.totalBudget,
+        totalSpent: budgetSummary.totalSpent,
+        remaining: budgetSummary.remaining
+      });
+      
+      showToast('success', 'Expense added!', 'Your expense has been added to the budget.');
+      setShowAddExpense(false);
+      setNewExpense({
+        category: 'accommodation',
+        amount: '',
+        description: '',
+        date: new Date().toISOString().split('T')[0]
+      });
+    } catch (error) {
+      console.error('Error adding expense:', error);
+      showToast('error', 'Error', 'Failed to add expense');
+    }
+  };
+
+  const handleDeleteExpense = async (expenseId: string) => {
+    try {
+      await api.delete(`/api/expenses/${expenseId}`);
+      setExpenses(prev => prev.filter(expense => expense._id !== expenseId));
+      
+      // Update budget summary
+      const budgetSummary = await api.get(`/api/expenses/${tripId}/summary`) as any;
+      setBudgetData({
+        totalBudget: budgetSummary.totalBudget,
+        totalSpent: budgetSummary.totalSpent,
+        remaining: budgetSummary.remaining
+      });
+      
+      showToast('success', 'Expense deleted!', 'Expense has been removed from the budget.');
+    } catch (error) {
+      console.error('Error deleting expense:', error);
+      showToast('error', 'Error', 'Failed to delete expense');
+    }
   };
 
   const getCategoryInfo = (categoryId: string) => {
-    return categories.find(cat => cat.id === categoryId) || categories[categories.length - 1];
+    return categories.find(cat => cat.id === categoryId) || categories[0];
   };
 
-  const budgetProgress = (budgetData.totalSpent / budgetData.totalBudget) * 100;
+  const budgetProgress = budgetData.totalBudget > 0 ? (budgetData.totalSpent / budgetData.totalBudget) * 100 : 0;
   const isOverBudget = budgetData.totalSpent > budgetData.totalBudget;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading budget data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -119,7 +194,7 @@ const TripBudget: React.FC = () => {
               <h3 className="text-lg font-semibold text-gray-900">Total Budget</h3>
               <DollarSign className="h-6 w-6 text-blue-600" />
             </div>
-            <p className="text-3xl font-bold text-gray-900">${budgetData.totalBudget.toLocaleString()}</p>
+            <p className="text-3xl font-bold text-gray-900">₹{budgetData.totalBudget.toLocaleString()}</p>
           </motion.div>
 
           <motion.div
@@ -133,7 +208,7 @@ const TripBudget: React.FC = () => {
               <TrendingUp className={`h-6 w-6 ${isOverBudget ? 'text-red-600' : 'text-green-600'}`} />
             </div>
             <p className={`text-3xl font-bold ${isOverBudget ? 'text-red-600' : 'text-gray-900'}`}>
-              ${budgetData.totalSpent.toLocaleString()}
+              ₹{budgetData.totalSpent.toLocaleString()}
             </p>
             <div className="mt-2">
               <div className="w-full bg-gray-200 rounded-full h-2">
@@ -159,7 +234,7 @@ const TripBudget: React.FC = () => {
               <TrendingDown className={`h-6 w-6 ${budgetData.remaining < 0 ? 'text-red-600' : 'text-blue-600'}`} />
             </div>
             <p className={`text-3xl font-bold ${budgetData.remaining < 0 ? 'text-red-600' : 'text-gray-900'}`}>
-              ${Math.abs(budgetData.remaining).toLocaleString()}
+              ₹{Math.abs(budgetData.remaining).toLocaleString()}
               {budgetData.remaining < 0 && ' over'}
             </p>
           </motion.div>
@@ -192,7 +267,7 @@ const TripBudget: React.FC = () => {
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => [`$${value}`, 'Amount']} />
+                  <Tooltip formatter={(value) => [`₹${value}`, 'Amount']} />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -225,7 +300,7 @@ const TripBudget: React.FC = () => {
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" />
                   <YAxis />
-                  <Tooltip formatter={(value) => [`$${value}`, 'Amount']} />
+                  <Tooltip formatter={(value) => [`₹${value}`, 'Amount']} />
                   <Bar dataKey="amount" fill="#3B82F6" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -240,40 +315,56 @@ const TripBudget: React.FC = () => {
           className="bg-white rounded-xl shadow-sm p-6"
         >
           <h2 className="text-xl font-semibold text-gray-900 mb-6">Recent Expenses</h2>
-          <div className="space-y-4">
-            {expenses.map((expense) => {
-              const categoryInfo = getCategoryInfo(expense.category);
-              return (
-                <motion.div
-                  key={expense.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200"
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center text-xl" style={{ backgroundColor: `${categoryInfo.color}20` }}>
-                      {categoryInfo.icon}
+          {expenses.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-gray-400 mb-4">
+                <DollarSign className="h-16 w-16 mx-auto" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No expenses yet</h3>
+              <p className="text-gray-600">Start tracking your trip expenses</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {expenses.map((expense) => {
+                const categoryInfo = getCategoryInfo(expense.category);
+                return (
+                  <motion.div
+                    key={expense._id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="w-12 h-12 rounded-full flex items-center justify-center text-xl" style={{ backgroundColor: `${categoryInfo.color}20` }}>
+                        {categoryInfo.icon}
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-gray-900">{expense.description}</h3>
+                        <p className="text-sm text-gray-600">{categoryInfo.name} • {new Date(expense.date).toLocaleDateString()}</p>
+                        {expense.location && (
+                          <p className="text-sm text-gray-500">{expense.location}</p>
+                        )}
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-medium text-gray-900">{expense.description}</h3>
-                      <p className="text-sm text-gray-600">{categoryInfo.name} • {expense.date}</p>
+                    <div className="flex items-center space-x-4">
+                      <span className="text-lg font-semibold text-gray-900">₹{expense.amount}</span>
+                      <div className="flex items-center space-x-2">
+                        <button className="text-gray-400 hover:text-red-600 transition-colors duration-200">
+                          <Edit3 className="h-4 w-4" />
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteExpense(expense._id)}
+                          className="text-gray-400 hover:text-red-600 transition-colors duration-200"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    <span className="text-lg font-semibold text-gray-900">${expense.amount}</span>
-                    <div className="flex items-center space-x-2">
-                      <button className="text-gray-400 hover:text-blue-600 transition-colors duration-200">
-                        <Edit3 className="h-4 w-4" />
-                      </button>
-                      <button className="text-gray-400 hover:text-red-600 transition-colors duration-200">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
         </motion.div>
 
         {/* Add Expense Modal */}
@@ -301,7 +392,7 @@ const TripBudget: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Amount (₹)</label>
                   <input
                     type="number"
                     value={newExpense.amount}
@@ -309,6 +400,8 @@ const TripBudget: React.FC = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="0.00"
                     required
+                    min="0"
+                    step="0.01"
                   />
                 </div>
                 <div>
