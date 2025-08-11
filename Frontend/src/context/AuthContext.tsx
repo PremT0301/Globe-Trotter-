@@ -58,7 +58,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       localStorage.setItem('token', token);
     }
   };
-  const [user, setUser] = useState<User | null>(null);
   const { showToast } = useToast();
 
   const login = async (email: string, password: string) => {
