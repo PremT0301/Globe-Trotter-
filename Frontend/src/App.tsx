@@ -3,9 +3,7 @@ import { AnimatePresence } from 'framer-motion';
 import LandingPage from './pages/LandingPage';
 import { AuthProvider } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
-import AdminDashboard from './pages/AdminDashboard';
-import Navbar from './components/Navbar';
-import ItineraryBuilder from './pages/ItineraryBuilder';
+import SignupPage from './pages/SignupPage';
 
 function App() {
   return (
@@ -16,8 +14,7 @@ function App() {
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<LoginPage />} />
-              <Route path="/admin" element={<><Navbar /><AdminDashboard /></>} />
-              <Route path="/itinerary-builder" element={<ItineraryBuilder />} />
+              <Route path="/signup" element={<SignupPage />} />
             </Routes>
           </AnimatePresence>
         </div>
