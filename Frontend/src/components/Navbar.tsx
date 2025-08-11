@@ -23,7 +23,7 @@ const Navbar: React.FC = () => {
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: <Globe className="h-5 w-5" /> },
     { name: 'My Trips', path: '/my-trips', icon: <Plane className="h-5 w-5" /> },
-    { name: 'Explore', path: '/city-search', icon: <Heart className="h-5 w-5" /> },
+    { name: 'Explore', path: '/explore', icon: <Heart className="h-5 w-5" /> },
     { name: 'Activities', path: '/activity-search', icon: <Zap className="h-5 w-5" /> },
   ];
 

@@ -5,10 +5,28 @@ import { Calendar, ChevronLeft, ChevronRight, Clock, MapPin, Plus, Edit3, ArrowL
 import { api } from '../lib/api';
 import { useToast } from '../context/ToastContext';
 
+interface Activity {
+  id: string;
+  title: string;
+  time: string;
+  location: string;
+  duration: string;
+  type: 'attraction' | 'restaurant' | 'hotel' | 'transport' | 'activity';
+  notes?: string;
+  cost?: number;
+  color: string;
+  date: string;
+}
+
+interface DayActivities {
+  date: string;
+  activities: Activity[];
+}
+
 const TripCalendar: React.FC = () => {
   const { tripId } = useParams();
   const { showToast } = useToast();
-  const [selectedDate, setSelectedDate] = useState('2024-06-15');
+  const [selectedDate, setSelectedDate] = useState<string>('');
   const [viewMode, setViewMode] = useState<'calendar' | 'timeline'>('calendar');
   const [tripData, setTripData] = useState<any>(null);
   const [itineraryData, setItineraryData] = useState<any[]>([]);
@@ -21,12 +39,17 @@ const TripCalendar: React.FC = () => {
       
       try {
         setLoading(true);
-        const trip = await api.get(`/api/trips/${tripId}`) as any;
-        const itinerary = await api.get(`/api/itinerary/${tripId}`) as any[];
         
+        // Fetch trip data
+        const trip = await api.get(`/api/trips/${tripId}`) as any;
         setTripData(trip);
-        setItineraryData(itinerary);
         setSelectedDate(trip.startDate);
+        
+        // Fetch itinerary data
+        const itinerary = await api.get(`/api/itinerary/${tripId}`) as any[];
+        console.log('Fetched itinerary data:', itinerary);
+        setItineraryData(itinerary);
+        
       } catch (error) {
         console.error('Error fetching data:', error);
         showToast('error', 'Error', 'Failed to load trip data');
@@ -38,46 +61,102 @@ const TripCalendar: React.FC = () => {
     fetchData();
   }, [tripId, showToast]);
 
-  const tripDates = tripData ? {
-    start: tripData.startDate,
-    end: tripData.endDate
-  } : {
-    start: '2024-06-15',
-    end: '2024-06-30'
+  // Helper functions
+  const getActivityIcon = (type: string): string => {
+    switch (type) {
+      case 'attraction': return '🏛️';
+      case 'restaurant': return '🍽️';
+      case 'hotel': return '🏨';
+      case 'transport': return '✈️';
+      case 'activity': return '🎯';
+      default: return '📍';
+    }
+  };
+
+  const getActivityColor = (type: string): string => {
+    switch (type) {
+      case 'attraction': return 'bg-blue-500';
+      case 'restaurant': return 'bg-orange-500';
+      case 'hotel': return 'bg-purple-500';
+      case 'transport': return 'bg-green-500';
+      case 'activity': return 'bg-red-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  const getActivityColorLight = (type: string): string => {
+    switch (type) {
+      case 'attraction': return 'bg-blue-100 border-blue-200';
+      case 'restaurant': return 'bg-orange-100 border-orange-200';
+      case 'hotel': return 'bg-purple-100 border-purple-200';
+      case 'transport': return 'bg-green-100 border-green-200';
+      case 'activity': return 'bg-red-100 border-red-200';
+      default: return 'bg-gray-100 border-gray-200';
+    }
   };
 
   // Convert itinerary data to activities format
-  const activities = itineraryData.map((item, index) => {
-    try {
-      const activityData = item.notes ? JSON.parse(item.notes) : {};
-      return {
-        id: item._id || index.toString(),
-        date: item.date.split('T')[0],
-        time: activityData.time || '09:00',
-        title: activityData.title || 'Activity',
-        location: activityData.location || 'Location',
-        duration: activityData.duration || '1 hour',
-        type: activityData.type || 'attraction',
-        color: getActivityColor(activityData.type || 'attraction')
-      };
-    } catch (error) {
-      return {
-        id: item._id || index.toString(),
-        date: item.date.split('T')[0],
-        time: '09:00',
-        title: 'Activity',
-        location: 'Location',
-        duration: '1 hour',
-        type: 'attraction',
-        color: 'bg-blue-500'
-      };
-    }
-  });
+  const convertItineraryToActivities = (): Activity[] => {
+    return itineraryData.map((item) => {
+      const date = new Date(item.date).toISOString().split('T')[0];
+      
+      // If activityId exists, use the populated activity data
+      if (item.activityId) {
+        return {
+          id: item._id,
+          title: item.activityId.name,
+          type: item.activityId.type,
+          time: '12:00', // Default time since it's not stored in Activity model
+          location: item.cityId?.name || 'Unknown Location',
+          duration: `${item.activityId.duration} minutes`,
+          notes: item.notes || item.activityId.description,
+          cost: item.activityId.cost,
+          color: getActivityColor(item.activityId.type),
+          date: date
+        };
+      } else {
+        // Fallback for legacy data stored in notes
+        try {
+          const parsedData = JSON.parse(item.notes);
+          return {
+            id: item._id,
+            title: parsedData.title || 'Activity',
+            type: parsedData.type || 'attraction',
+            time: parsedData.time || '12:00',
+            location: parsedData.location || 'Location',
+            duration: parsedData.duration || '1 hour',
+            notes: parsedData.notes || '',
+            cost: parsedData.cost || 0,
+            color: getActivityColor(parsedData.type || 'attraction'),
+            date: date
+          };
+        } catch (error) {
+          console.error('Error parsing activity data:', error);
+          return {
+            id: item._id,
+            title: 'Activity',
+            type: 'attraction',
+            time: '12:00',
+            location: 'Location',
+            duration: '1 hour',
+            notes: '',
+            cost: 0,
+            color: getActivityColor('attraction'),
+            date: date
+          };
+        }
+      }
+    });
+  };
+
+  const activities = convertItineraryToActivities();
 
   // Generate calendar days
   const generateCalendarDays = () => {
-    const start = new Date(tripDates.start);
-    const end = new Date(tripDates.end);
+    if (!tripData) return [];
+    
+    const start = new Date(tripData.startDate);
+    const end = new Date(tripData.endDate);
     const days = [];
     
     const current = new Date(start);
@@ -91,36 +170,16 @@ const TripCalendar: React.FC = () => {
 
   const calendarDays = generateCalendarDays();
 
-  const getActivitiesForDate = (date: string) => {
+  const getActivitiesForDate = (date: string): Activity[] => {
     return activities.filter(activity => activity.date === date);
   };
 
-  const formatDate = (date: Date) => {
+  const formatDate = (date: Date): string => {
     return date.toISOString().split('T')[0];
   };
 
-  const isToday = (date: string) => {
+  const isToday = (date: string): boolean => {
     return date === new Date().toISOString().split('T')[0];
-  };
-
-  const getActivityIcon = (type: string) => {
-    switch (type) {
-      case 'attraction': return '🏛️';
-      case 'restaurant': return '🍽️';
-      case 'hotel': return '🏨';
-      case 'transport': return '✈️';
-      default: return '📍';
-    }
-  };
-
-  const getActivityColor = (type: string) => {
-    switch (type) {
-      case 'attraction': return 'bg-blue-500';
-      case 'restaurant': return 'bg-orange-500';
-      case 'hotel': return 'bg-purple-500';
-      case 'transport': return 'bg-green-500';
-      default: return 'bg-gray-500';
-    }
   };
 
   if (loading) {
@@ -176,6 +235,9 @@ const TripCalendar: React.FC = () => {
             <p className="text-sm text-gray-500">
               {new Date(tripData.startDate).toLocaleDateString()} - {new Date(tripData.endDate).toLocaleDateString()}
             </p>
+            <p className="text-sm text-blue-600 mt-1">
+              {activities.length} activities planned across {calendarDays.length} days
+            </p>
           </div>
           <div className="flex items-center space-x-4">
             <div className="flex bg-gray-200 rounded-lg p-1">
@@ -217,7 +279,7 @@ const TripCalendar: React.FC = () => {
                 <div className="bg-white rounded-xl shadow-sm p-6">
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-xl font-semibold text-gray-900">
-                      June 2024
+                      {new Date(tripData.startDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                     </h2>
                     <div className="flex items-center space-x-2">
                       <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200">
@@ -239,7 +301,7 @@ const TripCalendar: React.FC = () => {
 
                   <div className="grid grid-cols-7 gap-2">
                     {/* Empty cells for days before trip start */}
-                    {Array.from({ length: new Date(tripDates.start).getDay() }, (_, i) => (
+                    {Array.from({ length: new Date(tripData.startDate).getDay() }, (_, i) => (
                       <div key={`empty-${i}`} className="h-24 bg-gray-50 rounded-lg opacity-50" />
                     ))}
                     
@@ -274,6 +336,7 @@ const TripCalendar: React.FC = () => {
                                 <div
                                   key={activity.id}
                                   className={`w-full h-1.5 rounded-full ${activity.color}`}
+                                  title={`${activity.title} - ${activity.time}`}
                                 />
                               ))}
                               {dayActivities.length > 2 && (
@@ -295,24 +358,26 @@ const TripCalendar: React.FC = () => {
                 <div className="bg-white rounded-xl shadow-sm p-6 sticky top-8">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold text-gray-900">
-                      {new Date(selectedDate).toLocaleDateString('en-US', {
+                      {selectedDate && new Date(selectedDate).toLocaleDateString('en-US', {
                         weekday: 'long',
                         month: 'long',
                         day: 'numeric'
                       })}
                     </h3>
-                    <button className="text-blue-600 hover:text-blue-700">
-                      <Plus className="h-5 w-5" />
-                    </button>
+                    <Link to={`/itinerary-builder/${tripId}`}>
+                      <button className="text-blue-600 hover:text-blue-700">
+                        <Plus className="h-5 w-5" />
+                      </button>
+                    </Link>
                   </div>
 
                   <div className="space-y-4">
-                    {getActivitiesForDate(selectedDate).map((activity) => (
+                    {selectedDate && getActivitiesForDate(selectedDate).map((activity) => (
                       <motion.div
                         key={activity.id}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg"
+                        className={`flex items-start space-x-3 p-3 rounded-lg border ${getActivityColorLight(activity.type)}`}
                       >
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${activity.color} text-white`}>
                           {getActivityIcon(activity.type)}
@@ -327,20 +392,29 @@ const TripCalendar: React.FC = () => {
                             <MapPin className="h-3 w-3 mr-1" />
                             {activity.location}
                           </div>
+                          {activity.cost && (
+                            <div className="text-xs text-green-600 font-medium mt-1">
+                              ₹{activity.cost}
+                            </div>
+                          )}
                         </div>
-                        <button className="text-gray-400 hover:text-gray-600">
-                          <Edit3 className="h-4 w-4" />
-                        </button>
+                        <Link to={`/itinerary-builder/${tripId}`}>
+                          <button className="text-gray-400 hover:text-gray-600">
+                            <Edit3 className="h-4 w-4" />
+                          </button>
+                        </Link>
                       </motion.div>
                     ))}
 
-                    {getActivitiesForDate(selectedDate).length === 0 && (
+                    {selectedDate && getActivitiesForDate(selectedDate).length === 0 && (
                       <div className="text-center py-8">
                         <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-3" />
                         <p className="text-gray-500 text-sm">No activities planned</p>
-                        <button className="text-blue-600 hover:text-blue-700 text-sm font-medium mt-2">
-                          Add activity
-                        </button>
+                        <Link to={`/itinerary-builder/${tripId}`}>
+                          <button className="text-blue-600 hover:text-blue-700 text-sm font-medium mt-2">
+                            Add activity
+                          </button>
+                        </Link>
                       </div>
                     )}
                   </div>
@@ -399,7 +473,7 @@ const TripCalendar: React.FC = () => {
                                   <div className="w-0.5 h-12 bg-gray-200 mt-2" />
                                 )}
                               </div>
-                              <div className="flex-1 bg-gray-50 rounded-lg p-4">
+                              <div className={`flex-1 rounded-lg p-4 border ${getActivityColorLight(activity.type)}`}>
                                 <div className="flex items-start justify-between">
                                   <div>
                                     <h3 className="font-semibold text-gray-900">{activity.title}</h3>
@@ -411,10 +485,20 @@ const TripCalendar: React.FC = () => {
                                       <MapPin className="h-4 w-4 mr-1" />
                                       {activity.location}
                                     </div>
+                                    {activity.notes && (
+                                      <p className="text-sm text-gray-600 mt-2 italic">{activity.notes}</p>
+                                    )}
+                                    {activity.cost && (
+                                      <div className="text-sm text-green-600 font-medium mt-1">
+                                        Cost: ₹{activity.cost}
+                                      </div>
+                                    )}
                                   </div>
-                                  <button className="text-gray-400 hover:text-gray-600">
-                                    <Edit3 className="h-4 w-4" />
-                                  </button>
+                                  <Link to={`/itinerary-builder/${tripId}`}>
+                                    <button className="text-gray-400 hover:text-gray-600">
+                                      <Edit3 className="h-4 w-4" />
+                                    </button>
+                                  </Link>
                                 </div>
                               </div>
                             </motion.div>
@@ -424,6 +508,11 @@ const TripCalendar: React.FC = () => {
                         <div className="ml-8 text-center py-8 bg-gray-50 rounded-lg">
                           <Calendar className="h-8 w-8 text-gray-300 mx-auto mb-2" />
                           <p className="text-gray-500 text-sm">Free day - no activities planned</p>
+                          <Link to={`/itinerary-builder/${tripId}`}>
+                            <button className="text-blue-600 hover:text-blue-700 text-sm font-medium mt-2">
+                              Add activity
+                            </button>
+                          </Link>
                         </div>
                       )}
                     </motion.div>

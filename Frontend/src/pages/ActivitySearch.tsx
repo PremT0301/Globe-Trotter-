@@ -2,6 +2,21 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Filter, Star, Clock, Users, DollarSign, Heart, Plus, Zap, Globe, Mountain, Palette, Wine, Moon, ArrowRight, Target, Sparkles } from 'lucide-react';
 
+interface Activity {
+  id: string;
+  name: string;
+  category: string;
+  rating: number;
+  reviews: number;
+  price: number;
+  duration: string;
+  groupSize: string;
+  image: string;
+  description: string;
+  highlights: string[];
+  website: string;
+}
+
 const ActivitySearch: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -43,7 +58,7 @@ const ActivitySearch: React.FC = () => {
     }
   ];
 
-  const activities = [
+  const activities: Activity[] = [
     {
       id: '1',
       name: 'Seine River Evening Cruise',
@@ -55,7 +70,8 @@ const ActivitySearch: React.FC = () => {
       groupSize: '2-50 people',
       image: 'https://images.pexels.com/photos/1530259/pexels-photo-1530259.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
       description: 'Romantic evening cruise along the Seine with dinner and live music',
-      highlights: ['Dinner included', 'Live music', 'City views', 'Professional guide']
+      highlights: ['Dinner included', 'Live music', 'City views', 'Professional guide'],
+      website: 'https://www.viator.com/Paris-attractions/Seine-River-Cruise/d479-a2202'
     },
     {
       id: '2',
@@ -68,7 +84,8 @@ const ActivitySearch: React.FC = () => {
       groupSize: '1-15 people',
       image: 'https://images.pexels.com/photos/2675266/pexels-photo-2675266.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
       description: 'Expert-guided tour of the world\'s most famous art museum',
-      highlights: ['Skip the line', 'Expert guide', 'Small group', 'Mona Lisa viewing']
+      highlights: ['Skip the line', 'Expert guide', 'Small group', 'Mona Lisa viewing'],
+      website: 'https://www.getyourguide.com/paris-l16/louvre-museum-skip-the-line-guided-tour-t145961/'
     },
     {
       id: '3',
@@ -81,7 +98,8 @@ const ActivitySearch: React.FC = () => {
       groupSize: '6-12 people',
       image: 'https://images.pexels.com/photos/1307698/pexels-photo-1307698.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
       description: 'Taste authentic French cuisine at hidden local gems',
-      highlights: ['Local tastings', 'Hidden gems', 'Wine included', 'Small group']
+      highlights: ['Local tastings', 'Hidden gems', 'Wine included', 'Small group'],
+      website: 'https://www.airbnb.com/experiences/paris-food-tours'
     },
     {
       id: '4',
@@ -94,7 +112,8 @@ const ActivitySearch: React.FC = () => {
       groupSize: '1-20 people',
       image: 'https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
       description: 'Climb the iconic Eiffel Tower and enjoy breathtaking views',
-      highlights: ['Panoramic views', 'Photo opportunities', 'Historical insights', 'Skip the line']
+      highlights: ['Panoramic views', 'Photo opportunities', 'Historical insights', 'Skip the line'],
+      website: 'https://www.toureiffel.paris/en/rates-opening-times'
     },
     {
       id: '5',
@@ -107,7 +126,8 @@ const ActivitySearch: React.FC = () => {
       groupSize: '4-8 people',
       image: 'https://images.pexels.com/photos/2675266/pexels-photo-2675266.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
       description: 'Create your own artwork in the artistic heart of Paris',
-      highlights: ['Art supplies included', 'Professional artist', 'Take home artwork', 'Scenic location']
+      highlights: ['Art supplies included', 'Professional artist', 'Take home artwork', 'Scenic location'],
+      website: 'https://www.airbnb.com/experiences/paris-art-workshops'
     },
     {
       id: '6',
@@ -120,7 +140,8 @@ const ActivitySearch: React.FC = () => {
       groupSize: '1-4 people',
       image: 'https://images.pexels.com/photos/1307698/pexels-photo-1307698.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
       description: 'Relaxing spa experience with traditional French treatments',
-      highlights: ['Massage therapy', 'Facial treatment', 'Sauna access', 'Refreshments included']
+      highlights: ['Massage therapy', 'Facial treatment', 'Sauna access', 'Refreshments included'],
+      website: 'https://www.booking.com/wellness/paris-spas'
     }
   ];
 
@@ -143,6 +164,11 @@ const ActivitySearch: React.FC = () => {
     setFavorites(prev => 
       prev.includes(id) ? prev.filter(fav => fav !== id) : [...prev, id]
     );
+  };
+
+  const handleBookNow = (website: string) => {
+    // Open the activity website in a new tab
+    window.open(website, '_blank', 'noopener,noreferrer');
   };
 
   // Enhanced background particles with more variety
@@ -390,6 +416,7 @@ const ActivitySearch: React.FC = () => {
                     </motion.button>
                     
                     <motion.button
+                      onClick={() => handleBookNow(activity.website)}
                       className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-2 rounded-xl hover:from-blue-600 hover:to-purple-600 transition-all duration-300 shadow-lg"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
