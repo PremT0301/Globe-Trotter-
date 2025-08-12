@@ -159,10 +159,11 @@ const ItineraryView: React.FC = () => {
       
       // Copy to clipboard
       await navigator.clipboard.writeText(shareUrl);
-      showToast('success', 'Trip Shared!', 'Share link copied to clipboard');
-    } catch (error) {
+      showToast('success', 'Trip Shared!', 'Trip shared successfully and added to community! Share link copied to clipboard');
+    } catch (error: any) {
       console.error('Error sharing trip:', error);
-      showToast('error', 'Error', 'Failed to share trip');
+      const errorMessage = error.response?.data?.message || 'Failed to share trip';
+      showToast('error', 'Error', errorMessage);
     }
   };
 

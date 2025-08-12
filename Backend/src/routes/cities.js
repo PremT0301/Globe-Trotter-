@@ -92,7 +92,7 @@ router.get('/country/:country', async (req, res) => {
 // Admin add city (requires authentication)
 router.post('/', authenticateToken, async (req, res) => {
   try {
-    const { name, country, costIndex, popularityScore } = req.body;
+    const { name, country, costIndex, popularityScore, image } = req.body;
     
     // Validate required fields
     if (!name || !country) {
@@ -117,7 +117,8 @@ router.post('/', authenticateToken, async (req, res) => {
       name, 
       country, 
       costIndex: costIndex || 50, 
-      popularityScore: popularityScore || 50 
+      popularityScore: popularityScore || 50,
+      image: image || null
     });
     
     res.status(201).json(city);
@@ -136,11 +137,11 @@ router.post('/', authenticateToken, async (req, res) => {
 router.put('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, country, costIndex, popularityScore } = req.body;
+    const { name, country, costIndex, popularityScore, image } = req.body;
     
     const city = await City.findByIdAndUpdate(
       id,
-      { name, country, costIndex, popularityScore },
+      { name, country, costIndex, popularityScore, image },
       { new: true }
     ).lean();
     

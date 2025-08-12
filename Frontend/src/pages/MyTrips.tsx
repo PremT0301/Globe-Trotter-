@@ -116,13 +116,14 @@ const MyTrips: React.FC = () => {
       
       // Copy to clipboard
       await navigator.clipboard.writeText(shareUrl);
-      showToast('success', 'Trip Shared!', 'Share link copied to clipboard');
+      showToast('success', 'Trip Shared!', 'Trip shared successfully and added to community! Share link copied to clipboard');
       
       // Refresh trips to show shared status
       fetchTrips();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sharing trip:', error);
-      showToast('error', 'Error', 'Failed to share trip');
+      const errorMessage = error.response?.data?.message || 'Failed to share trip';
+      showToast('error', 'Error', errorMessage);
     }
   };
 

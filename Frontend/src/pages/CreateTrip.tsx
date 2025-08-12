@@ -1,12 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Calendar, Users, DollarSign, Camera, ArrowRight, ArrowLeft, Plane, Heart, Globe, Zap, Star, Target, Sparkles } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 import { api } from '../lib/api';
 
+interface City {
+  id: number;
+  name: string;
+  country: string;
+  image?: string;
+  popularityScore?: number;
+}
+
+
+
 const CreateTrip: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [cities, setCities] = useState<City[]>([]);
   const [formData, setFormData] = useState({
     title: '',
     destination: '',
@@ -20,8 +31,25 @@ const CreateTrip: React.FC = () => {
   });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [createdTripId, setCreatedTripId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { showToast } = useToast();
+
+  useEffect(() => {
+    fetchCities();
+  }, []);
+
+  const fetchCities = async () => {
+    try {
+      const data = await api.get<City[]>('/api/cities');
+      setCities(data);
+    } catch (e) {
+      console.error('Failed to fetch cities:', e);
+    }
+  };
+
+
 
   const steps = [
     { number: 1, title: 'Basic Info', icon: <MapPin className="h-5 w-5" />, color: 'from-blue-500 to-indigo-500' },
@@ -29,30 +57,15 @@ const CreateTrip: React.FC = () => {
     { number: 3, title: 'Preferences', icon: <Users className="h-5 w-5" />, color: 'from-green-500 to-teal-500' }
   ];
 
-
-
-  const popularDestinations = [
-    {
-      name: 'Paris, France',
-      image: 'https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&dpr=1',
-      description: 'The City of Light'
-    },
-    {
-      name: 'Tokyo, Japan',
-      image: 'https://images.pexels.com/photos/2506923/pexels-photo-2506923.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&dpr=1',
-      description: 'Modern meets Traditional'
-    },
-    {
-      name: 'Bali, Indonesia',
-      image: 'https://images.pexels.com/photos/1320684/pexels-photo-1320684.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&dpr=1',
-      description: 'Island Paradise'
-    },
-    {
-      name: 'New York, USA',
-      image: 'https://images.pexels.com/photos/290386/pexels-photo-290386.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&dpr=1',
-      description: 'The Big Apple'
-    }
-  ];
+  // Popular destinations based on backend data (top 4)
+  const popularDestinations = cities
+    .sort((a, b) => (b.popularityScore || 0) - (a.popularityScore || 0))
+    .slice(0, 4)
+    .map(city => ({
+      name: `${city.name}, ${city.country}`,
+      image: city.image || 'https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=300&h=200&dpr=1',
+      description: `Explore ${city.name}`
+    }));
 
   const tripTypes = [
     {
@@ -86,6 +99,10 @@ const CreateTrip: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleTripTypeSelect = (tripType: 'Adventure' | 'Romantic' | 'Cultural' | 'Relaxation') => {
+    setFormData(prev => ({ ...prev, tripType }));
+  };
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -116,7 +133,8 @@ const CreateTrip: React.FC = () => {
     try {
       const response = await api.post('/api/trips', formData) as any;
       showToast('success', 'Trip Created!', 'Your trip has been successfully created.');
-      navigate(`/itinerary-builder/${response._id}`);
+      setCreatedTripId(response._id);
+      setShowShareModal(true);
     } catch (error) {
       console.error('Error creating trip:', error);
       showToast('error', 'Error', 'Failed to create trip. Please try again.');
@@ -124,6 +142,35 @@ const CreateTrip: React.FC = () => {
       setIsSubmitting(false);
     }
   };
+
+
+
+  const handleShareToCommunity = async () => {
+    if (!createdTripId) return;
+    
+    try {
+      const response = await api.post('/api/community/posts', {
+        tripId: createdTripId,
+        title: formData.title,
+        description: formData.description,
+        tags: [formData.destination.toLowerCase(), formData.tripType.toLowerCase()]
+      });
+      
+      showToast('success', 'Shared to Community!', 'Your trip is now visible to the community');
+      setShowShareModal(false);
+      navigate('/community');
+    } catch (error) {
+      console.error('Error sharing to community:', error);
+      showToast('error', 'Error', 'Failed to share to community');
+    }
+  };
+
+  const handleContinueToItinerary = () => {
+    setShowShareModal(false);
+    navigate(`/itinerary-builder/${createdTripId}`);
+  };
+
+
 
   // Enhanced background particles with more variety
   const particles = Array.from({ length: 40 }, (_, i) => ({
@@ -203,6 +250,20 @@ const CreateTrip: React.FC = () => {
               </span>
             ))}
           </div>
+          
+          {/* Selected Trip Type Display */}
+          {currentStep === 3 && formData.tripType && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex justify-center mt-4"
+            >
+              <div className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-100 text-blue-800 rounded-full">
+                <span className="text-sm font-medium">Selected Trip Type:</span>
+                <span className="text-sm font-bold">{formData.tripType}</span>
+              </div>
+            </motion.div>
+          )}
         </motion.div>
 
         {/* Form Content */}
@@ -379,8 +440,13 @@ const CreateTrip: React.FC = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5, delay: 0.1 + index * 0.1 }}
-                        className="p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-blue-500 transition-all duration-300 group"
+                        className={`p-4 border-2 rounded-xl cursor-pointer transition-all duration-300 group relative ${
+                          formData.tripType === type.title
+                            ? 'border-blue-500 bg-blue-50 shadow-lg'
+                            : 'border-gray-200 hover:border-blue-500'
+                        }`}
                         whileHover={{ scale: 1.02 }}
+                        onClick={() => handleTripTypeSelect(type.title as 'Adventure' | 'Romantic' | 'Cultural' | 'Relaxation')}
                       >
                         <div className="flex items-center space-x-3">
                           <motion.div 
@@ -391,12 +457,27 @@ const CreateTrip: React.FC = () => {
                             <div className="text-white">{type.icon}</div>
                           </motion.div>
                           <div>
-                            <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                            <h3 className={`font-semibold transition-colors ${
+                              formData.tripType === type.title
+                                ? 'text-blue-600'
+                                : 'text-gray-900 group-hover:text-blue-600'
+                            }`}>
                               {type.title}
                             </h3>
                             <p className="text-sm text-gray-600">{type.description}</p>
                           </div>
                         </div>
+                        {formData.tripType === type.title && (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="absolute top-2 right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center"
+                          >
+                            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </motion.div>
+                        )}
                       </motion.div>
                     ))}
                   </div>
@@ -506,6 +587,58 @@ const CreateTrip: React.FC = () => {
           </div>
         </motion.div>
       </div>
+
+      {/* Share to Community Modal */}
+      <AnimatePresence>
+        {showShareModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-2xl p-8 max-w-md w-full"
+            >
+              <div className="text-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Trip Created Successfully!</h3>
+                <p className="text-gray-600 mb-6">Would you like to share your trip with the community?</p>
+                
+                <div className="space-y-3">
+                  <button
+                    onClick={handleShareToCommunity}
+                    className="w-full bg-blue-600 text-white py-3 px-6 rounded-xl hover:bg-blue-700 transition-colors"
+                  >
+                    Share to Community
+                  </button>
+                  <button
+                    onClick={handleContinueToItinerary}
+                    className="w-full bg-gray-100 text-gray-700 py-3 px-6 rounded-xl hover:bg-gray-200 transition-colors"
+                  >
+                    Continue to Itinerary
+                  </button>
+                  <button
+                    onClick={() => setShowShareModal(false)}
+                    className="w-full text-gray-500 py-2 hover:text-gray-700 transition-colors"
+                  >
+                    Maybe Later
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+
     </div>
   );
 };

@@ -1,9 +1,33 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Globe, MapPin, Users, Star, ArrowRight, Plane, Compass, Heart, Zap, Sparkles, Rocket, Target, CheckCircle } from 'lucide-react';
+import { api } from '../lib/api';
+
+interface City {
+  id: number;
+  name: string;
+  country: string;
+  image?: string;
+  popularityScore?: number;
+}
 
 const LandingPage: React.FC = () => {
+  const [cities, setCities] = useState<City[]>([]);
+
+  useEffect(() => {
+    fetchCities();
+  }, []);
+
+  const fetchCities = async () => {
+    try {
+      const data = await api.get<City[]>('/api/cities');
+      setCities(data);
+    } catch (e) {
+      console.error('Failed to fetch cities:', e);
+    }
+  };
+
   const features = [
     {
       icon: <Plane className="h-8 w-8" />,
@@ -28,36 +52,17 @@ const LandingPage: React.FC = () => {
     }
   ];
 
-  const destinations = [
-    {
-      name: "Paris, France",
-      image: "https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1",
-      rating: 4.9,
-      trips: 1250,
-      color: "from-blue-500 to-indigo-500"
-    },
-    {
-      name: "Tokyo, Japan",
-      image: "https://images.pexels.com/photos/2506923/pexels-photo-2506923.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1",
-      rating: 4.8,
-      trips: 980,
-      color: "from-purple-500 to-pink-500"
-    },
-    {
-      name: "Bali, Indonesia",
-      image: "https://images.pexels.com/photos/1320684/pexels-photo-1320684.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1",
-      rating: 4.7,
-      trips: 750,
-      color: "from-green-500 to-teal-500"
-    },
-    {
-      name: "New York, USA",
-      image: "https://images.pexels.com/photos/290386/pexels-photo-290386.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1",
-      rating: 4.6,
-      trips: 1100,
-      color: "from-orange-500 to-amber-500"
-    }
-  ];
+  // Destinations based on backend data (top 4)
+  const destinations = cities
+    .sort((a, b) => (b.popularityScore || 0) - (a.popularityScore || 0))
+    .slice(0, 4)
+    .map((city, index) => ({
+      name: `${city.name}, ${city.country}`,
+      image: city.image || 'https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
+      rating: 4.5 + Math.random() * 0.5,
+      trips: Math.floor(Math.random() * 1000) + 500,
+      color: ["from-blue-500 to-indigo-500", "from-purple-500 to-pink-500", "from-green-500 to-teal-500", "from-orange-500 to-amber-500"][index % 4]
+    }));
 
   const testimonials = [
     {

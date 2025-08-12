@@ -6,6 +6,7 @@ const Itinerary = require('../models/Itinerary');
 const Budget = require('../models/Budget');
 const Activity = require('../models/Activity');
 const City = require('../models/City');
+const CommunityPost = require('../models/CommunityPost');
 
 const router = express.Router();
 
@@ -51,6 +52,14 @@ router.post('/:tripId', authenticateToken, async (req, res) => {
       });
     }
     
+    // Check if community post already exists for this trip
+    const existingPost = await CommunityPost.findOne({ tripId, status: 'active' });
+    if (existingPost) {
+      return res.status(400).json({ 
+        message: 'Trip already has an active community post. Please delete the existing post first.' 
+      });
+    }
+    
     // Generate unique slug
     const publicUrl = await generateUniqueSlug();
     
@@ -61,11 +70,29 @@ router.post('/:tripId', authenticateToken, async (req, res) => {
       shareDate: new Date()
     });
     
+    // Create community post for the shared trip
+    const communityPost = await CommunityPost.create({
+      userId: req.user.id,
+      tripId: tripId,
+      title: trip.title,
+      description: trip.description || `Check out my amazing trip to ${trip.destination}!`,
+      coverImage: trip.coverPhoto,
+      tags: [
+        trip.destination,
+        trip.tripType,
+        'shared-trip',
+        'travel-inspiration'
+      ].filter(Boolean), // Remove any undefined values
+      isPublic: true,
+      status: 'active'
+    });
+    
     const shareUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/shared/${publicUrl}`;
     
     res.status(201).json({
-      message: 'Trip shared successfully',
+      message: 'Trip shared successfully and added to community',
       sharedTrip: shared,
+      communityPost: communityPost,
       shareUrl: shareUrl
     });
   } catch (error) {
@@ -106,11 +133,30 @@ router.get('/explore', async (req, res) => {
     // Filter out trips where tripId is null (deleted trips)
     const validSharedTrips = sharedTrips.filter(st => st.tripId);
     
+    // Get community posts for these shared trips
+    const tripIds = validSharedTrips.map(st => st.tripId._id);
+    const communityPosts = await CommunityPost.find({
+      tripId: { $in: tripIds },
+      status: 'active'
+    }).lean();
+    
+    // Create a map of tripId to community post
+    const postMap = {};
+    communityPosts.forEach(post => {
+      postMap[post.tripId.toString()] = post;
+    });
+    
+    // Add community post info to shared trips
+    const sharedTripsWithPosts = validSharedTrips.map(st => ({
+      ...st,
+      communityPost: postMap[st.tripId._id.toString()]
+    }));
+    
     // Get total count for pagination
     const total = await SharedTrip.countDocuments(query);
     
     res.json({
-      sharedTrips: validSharedTrips,
+      sharedTrips: sharedTripsWithPosts,
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
@@ -132,9 +178,17 @@ router.get('/stats', async (req, res) => {
       shareDate: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) } // Last 7 days
     });
     
+    // Get community posts linked to shared trips
+    const sharedTripIds = await SharedTrip.distinct('tripId');
+    const communityPostsCount = await CommunityPost.countDocuments({
+      tripId: { $in: sharedTripIds },
+      status: 'active'
+    });
+    
     res.json({
       totalShared,
       recentShares,
+      communityPostsCount,
       popularDestinations: [] // TODO: Implement popular destinations logic
     });
   } catch (error) {
@@ -319,10 +373,60 @@ router.delete('/:tripId', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'Shared trip not found' });
     }
     
-    res.json({ message: 'Trip unshared successfully' });
+    // Archive the corresponding community post when trip is unshared
+    await CommunityPost.findOneAndUpdate(
+      { tripId: tripId },
+      { status: 'archived' },
+      { new: true }
+    );
+    
+    res.json({ message: 'Trip unshared successfully and removed from community' });
   } catch (error) {
     console.error('Error unsharing trip:', error);
     res.status(500).json({ message: 'Failed to unshare trip' });
+  }
+});
+
+// Get community posts for shared trips
+router.get('/community-posts', async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    const skip = (page - 1) * limit;
+    
+    // Get all shared trip IDs
+    const sharedTripIds = await SharedTrip.distinct('tripId');
+    
+    // Get community posts for shared trips
+    const posts = await CommunityPost.find({
+      tripId: { $in: sharedTripIds },
+      status: 'active',
+      isPublic: true
+    })
+      .populate('userId', 'name email profilePhoto')
+      .populate('tripId', 'title destination description startDate endDate travelers tripType coverPhoto')
+      .populate('comments.userId', 'name profilePhoto')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+    
+    const total = await CommunityPost.countDocuments({
+      tripId: { $in: sharedTripIds },
+      status: 'active',
+      isPublic: true
+    });
+    
+    res.json({
+      posts,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching community posts for shared trips:', error);
+    res.status(500).json({ message: 'Failed to fetch community posts' });
   }
 });
 
