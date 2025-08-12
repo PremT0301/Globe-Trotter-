@@ -237,6 +237,72 @@ router.get('/u/:slug', async (req, res) => {
   }
 });
 
+// Clone a shared trip to user's trips (available to all authenticated users - both 'user' and 'admin' roles)
+router.post('/clone/:slug', authenticateToken, async (req, res) => {
+  try {
+    const slug = req.params.slug;
+    
+    // Find the shared trip
+    const shared = await SharedTrip.findOne({ publicUrl: slug });
+    if (!shared) {
+      return res.status(404).json({ message: 'Shared trip not found' });
+    }
+
+    // Get the original trip data
+    const originalTrip = await Trip.findById(shared.tripId).lean();
+    if (!originalTrip) {
+      return res.status(404).json({ message: 'Original trip not found' });
+    }
+
+    // Create a new trip for the current user
+    const newTrip = await Trip.create({
+      userId: req.user.id,
+      title: `${originalTrip.title} (Copy)`,
+      destination: originalTrip.destination,
+      description: originalTrip.description,
+      startDate: originalTrip.startDate,
+      endDate: originalTrip.endDate,
+      travelers: originalTrip.travelers,
+      budget: originalTrip.budget,
+      tripType: originalTrip.tripType,
+      coverPhoto: originalTrip.coverPhoto,
+      status: 'draft' // Start as draft so user can modify dates, activities, and all details
+    });
+
+    // Clone the itinerary
+    const originalItineraries = await Itinerary.find({ tripId: shared.tripId }).lean();
+    for (const itinerary of originalItineraries) {
+      await Itinerary.create({
+        tripId: newTrip._id,
+        cityId: itinerary.cityId,
+        activityId: itinerary.activityId,
+        date: itinerary.date,
+        orderIndex: itinerary.orderIndex,
+        notes: itinerary.notes
+      });
+    }
+
+    // Clone the budget
+    const originalBudget = await Budget.findOne({ tripId: shared.tripId }).lean();
+    if (originalBudget) {
+      await Budget.create({
+        tripId: newTrip._id,
+        totalBudget: originalBudget.totalBudget,
+        currency: originalBudget.currency,
+        categories: originalBudget.categories
+      });
+    }
+
+    res.status(201).json({
+      message: 'Trip cloned successfully',
+      trip: newTrip
+    });
+  } catch (error) {
+    console.error('Error cloning trip:', error);
+    res.status(500).json({ message: 'Failed to clone trip' });
+  }
+});
+
 // Unshare a trip
 router.delete('/:tripId', authenticateToken, async (req, res) => {
   try {

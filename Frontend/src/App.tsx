@@ -93,7 +93,7 @@ function App() {
                       <><Navbar /><TripCalendar /></>
                     </ProtectedRoute>
                   } />
-                  <Route path="/shared/:tripId" element={<SharedItinerary />} />
+                  <Route path="/shared/:slug" element={<SharedItinerary />} />
         <Route path="/explore" element={<ExplorePage />} />
                   <Route path="/profile" element={
                     <ProtectedRoute>

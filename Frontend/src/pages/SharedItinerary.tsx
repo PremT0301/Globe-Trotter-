@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Share2, Copy, Download, Calendar, MapPin, Users, Clock, Globe, Check } from 'lucide-react';
+import { Calendar, MapPin, Users, Clock, Globe, Copy, Check } from 'lucide-react';
+import { api } from '../lib/api';
+import { useAuth } from '../context/AuthContext';
 
 const SharedItinerary: React.FC = () => {
-  const { tripId } = useParams();
-  const [copied, setCopied] = useState(false);
+  const { slug } = useParams(); // The parameter is the slug
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const [isCloning, setIsCloning] = useState(false);
+  const [cloneSuccess, setCloneSuccess] = useState(false);
 
   const tripData = {
     title: 'European Adventure',
@@ -100,41 +105,25 @@ const SharedItinerary: React.FC = () => {
     }
   };
 
-  const shareUrl = window.location.href;
-
-  const copyToClipboard = async () => {
+  const handleCloneTrip = async () => {
+    if (!slug) return;
+    
+    setIsCloning(true);
     try {
-      await navigator.clipboard.writeText(shareUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy: ', err);
-    }
-  };
-
-  const handleExportPDF = async () => {
-    try {
-      const slug = window.location.pathname.split('/').pop();
-      const link = document.createElement('a');
-      link.href = `${process.env.REACT_APP_API_URL || 'http://localhost:4000'}/api/pdf/shared/${slug}`;
-      link.download = `${tripData?.title || 'shared_trip'}_itinerary.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      showToast('success', 'PDF Downloaded!', 'Your itinerary PDF has been downloaded');
+      const response = await api.post(`/api/shared/clone/${slug}`);
+      setCloneSuccess(true);
+      setTimeout(() => {
+        navigate('/my-trips');
+      }, 2000);
     } catch (error) {
-      console.error('Error exporting PDF:', error);
-      showToast('error', 'Error', 'Failed to export PDF');
+      console.error('Error cloning trip:', error);
+      alert('Failed to clone trip. Please try again.');
+    } finally {
+      setIsCloning(false);
     }
   };
 
-  const shareOptions = [
-    { name: 'Facebook', icon: '📘', color: 'bg-blue-600' },
-    { name: 'Twitter', icon: '🐦', color: 'bg-sky-500' },
-    { name: 'WhatsApp', icon: '💬', color: 'bg-green-500' },
-    { name: 'Email', icon: '📧', color: 'bg-gray-600' }
-  ];
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -177,66 +166,80 @@ const SharedItinerary: React.FC = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Share Actions */}
+        
+        {/* Clone Trip Button */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="bg-white rounded-xl shadow-sm p-6 mb-8"
         >
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-2">Share this itinerary</h2>
-              <p className="text-gray-600">Let others discover this amazing trip</p>
-            </div>
+                         <div>
+               <h2 className="text-lg font-semibold text-gray-900 mb-2">Want to use this itinerary?</h2>
+               <p className="text-gray-600">
+                 {isAuthenticated 
+                   ? 'Clone this trip to your account and customize dates, activities, and details for your own adventure'
+                   : 'Sign in to clone this trip to your account and customize dates, activities, and details for your own adventure'
+                 }
+               </p>
+             </div>
             
-            <div className="flex flex-wrap items-center gap-3">
-              {/* Copy Link */}
+            {isAuthenticated ? (
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={copyToClipboard}
-                className="flex items-center bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                onClick={handleCloneTrip}
+                disabled={isCloning}
+                className={`flex items-center px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${
+                  cloneSuccess 
+                    ? 'bg-green-500 text-white cursor-default'
+                    : isCloning
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
               >
-                {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
-                {copied ? 'Copied!' : 'Copy Link'}
+                                 {cloneSuccess ? (
+                   <>
+                     <Check className="h-5 w-5 mr-2" />
+                     Cloned! Redirecting...
+                   </>
+                 ) : isCloning ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-500 mr-2"></div>
+                    Cloning...
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-5 w-5 mr-2" />
+                    Clone to My Trips
+                  </>
+                )}
               </motion.button>
-
-              {/* PDF Export */}
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleExportPDF}
-                className="flex items-center bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors duration-200"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Export PDF
-              </motion.button>
-
-              {/* Social Share Buttons */}
-              {shareOptions.map((option) => (
-                <motion.button
-                  key={option.name}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={`flex items-center ${option.color} text-white px-4 py-2 rounded-lg hover:opacity-90 transition-opacity duration-200`}
+            ) : (
+              <div className="flex gap-3">
+                <Link
+                  to="/login"
+                  className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-200"
                 >
-                  <span className="mr-2">{option.icon}</span>
-                  {option.name}
-                </motion.button>
-              ))}
-
-              {/* Download PDF */}
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Download PDF
-              </motion.button>
-            </div>
-          </div>
-        </motion.div>
+                  Sign In
+                </Link>
+                <Link
+                  to="/signup"
+                  className="flex items-center px-6 py-3 border-2 border-blue-600 text-blue-600 rounded-lg font-semibold hover:bg-blue-50 transition-colors duration-200"
+                >
+                  Sign Up
+                </Link>
+              </div>
+                         )}
+           </div>
+           {isAuthenticated && (
+             <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+               <p className="text-sm text-blue-700">
+                 💡 <strong>Tip:</strong> The cloned trip will be saved as a draft. You can edit dates, modify activities, and customize all details in your My Trips page.
+               </p>
+             </div>
+           )}
+         </motion.div>
 
         {/* Itinerary Content */}
         <div className="space-y-8">
