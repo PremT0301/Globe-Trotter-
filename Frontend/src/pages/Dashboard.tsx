@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, MapPin, Calendar, Users, TrendingUp, Clock, Star, Plane, Heart, Zap, Compass, Target, Sparkles } from 'lucide-react';
+import { Plus, MapPin, Calendar, Users, TrendingUp, Clock, Star, Plane, Heart, Zap, Compass, Target, Sparkles, Bell, MessageCircle, Share2, Copy } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useNotifications } from '../context/NotificationContext';
 import { api } from '../lib/api';
 
 interface DashboardStats {
@@ -30,6 +31,98 @@ interface PopularDestination {
   trips: number;
   price: string;
 }
+
+const NotificationsSection: React.FC = () => {
+  const { notifications, markAsRead, deleteNotification } = useNotifications();
+
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case 'like':
+        return <Heart className="h-5 w-5 text-red-500" />;
+      case 'comment':
+        return <MessageCircle className="h-5 w-5 text-blue-500" />;
+      case 'share':
+        return <Share2 className="h-5 w-5 text-green-500" />;
+      case 'clone':
+        return <Copy className="h-5 w-5 text-purple-500" />;
+      default:
+        return <Bell className="h-5 w-5 text-gray-500" />;
+    }
+  };
+
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
+    return `${Math.floor(diffInMinutes / 1440)}d ago`;
+  };
+
+  if (notifications.length === 0) {
+    return (
+      <div className="bg-white/90 rounded-2xl shadow-lg border border-white/20 p-8 text-center">
+        <Bell className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+        <p className="text-gray-500">No notifications yet</p>
+        <p className="text-sm text-gray-400 mt-2">You'll see notifications here when someone interacts with your trips</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {notifications.slice(0, 6).map((notification, index) => (
+        <motion.div
+          key={notification._id}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: index * 0.1 }}
+          className={`bg-white/90 rounded-2xl shadow-lg border border-white/20 p-4 hover:shadow-xl transition-all duration-300 ${
+            !notification.isRead ? 'ring-2 ring-blue-200 bg-blue-50/50' : ''
+          }`}
+          whileHover={{ y: -2, scale: 1.02 }}
+        >
+          <div className="flex items-start space-x-3">
+            <div className="flex-shrink-0">
+              {notification.senderId.profilePhoto ? (
+                <img
+                  src={notification.senderId.profilePhoto}
+                  alt={notification.senderId.name}
+                  className="h-10 w-10 rounded-full object-cover"
+                />
+              ) : (
+                <div className="h-10 w-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-sm font-medium">
+                    {notification.senderId.name.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-gray-900 leading-relaxed mb-2">
+                {notification.message}
+              </p>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-500">
+                  {formatTimeAgo(notification.createdAt)}
+                </span>
+                <div className="flex items-center space-x-2">
+                  {getNotificationIcon(notification.type)}
+                  {!notification.isRead && (
+                    <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  );
+};
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -260,6 +353,22 @@ const Dashboard: React.FC = () => {
               </motion.div>
             ))}
           </div>
+        </motion.div>
+
+        {/* Recent Notifications */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="mb-8"
+        >
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Recent Notifications</h2>
+            <Link to="/notifications" className="text-blue-600 hover:text-blue-700 font-medium">
+              View All
+            </Link>
+          </div>
+          <NotificationsSection />
         </motion.div>
 
         {/* Recent Trips */}

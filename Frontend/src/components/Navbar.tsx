@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, User, LogOut, Settings, Globe, Plane, Heart, Zap, Sparkles, Camera, Shield, Users } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import ProfilePhotoUpload from './ProfilePhotoUpload';
+import NotificationBell from './NotificationBell';
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -73,6 +74,7 @@ const Navbar: React.FC = () => {
 
           {/* User Menu */}
           <div className="hidden md:flex items-center space-x-4">
+            {user && <NotificationBell />}
             {user ? (
               <div className="relative">
                 <button
@@ -305,6 +307,11 @@ const Navbar: React.FC = () => {
                     </div>
                     
                     <div className="space-y-2">
+                      {/* Notification Bell for Mobile */}
+                      <div className="p-4">
+                        <NotificationBell />
+                      </div>
+                      
                       <button
                         onClick={() => {
                           setIsPhotoUploadOpen(true);

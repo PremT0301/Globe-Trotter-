@@ -104,31 +104,80 @@ const CommunityPage: React.FC = () => {
   const [isLoadingTrips, setIsLoadingTrips] = useState(false);
   const [sharedTrips, setSharedTrips] = useState<any[]>([]);
   const [showSharedTrips, setShowSharedTrips] = useState(false);
+  const [tripIdToSlugMap, setTripIdToSlugMap] = useState<{[key: string]: string}>({});
 
   useEffect(() => {
-    fetchPosts();
+    const loadData = async () => {
+      try {
+        // First load shared trips to create the mapping
+        const sharedTripIds = await fetchSharedTrips();
+        
+        // Then load community posts and check for mismatches
+        const response = await api.get(`/api/community/posts?page=${currentPage}&limit=10&search=${searchTerm}&sort=${sortBy}`) as {
+          posts: CommunityPost[];
+          pagination: { pages: number };
+        };
+        
+        console.log('📋 Community posts loaded:', response.posts.map(post => ({
+          id: post._id,
+          tripId: post.tripId._id,
+          title: post.title
+        })));
+        
+        // Check for mismatches
+        response.posts.forEach(post => {
+          const hasSharedTrip = sharedTripIds.includes(post.tripId._id);
+          console.log(`🔍 Post "${post.title}" (tripId: ${post.tripId._id}) has shared trip: ${hasSharedTrip}`);
+          if (hasSharedTrip) {
+            const mappedSlug = tripIdToSlugMap[post.tripId._id];
+            console.log(`  ✅ Mapped slug: ${mappedSlug} -> URL: /shared/${mappedSlug}`);
+          } else {
+            console.warn(`⚠️ Community post "${post.title}" has no corresponding shared trip!`);
+          }
+        });
+        
+        setPosts(response.posts);
+        setTotalPages(response.pagination.pages);
+      } catch (error) {
+        console.error('Error loading data:', error);
+        showToast('error', 'Error', 'Failed to load data');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
   }, [currentPage, searchTerm, sortBy]);
 
   const fetchSharedTrips = async () => {
     try {
-      const response = await api.get('/api/shared/explore?limit=10');
+      const response = await api.get('/api/shared/explore?limit=50') as {
+        sharedTrips: Array<{
+          _id: string;
+          tripId: { _id: string };
+          publicUrl: string;
+        }>;
+      };
       setSharedTrips(response.sharedTrips);
+      
+      // Create a mapping from trip ID to public URL slug
+      const mapping: {[key: string]: string} = {};
+      response.sharedTrips.forEach((sharedTrip) => {
+        if (sharedTrip.tripId && sharedTrip.publicUrl) {
+          mapping[sharedTrip.tripId._id] = sharedTrip.publicUrl;
+          console.log(`🔗 Mapping: tripId ${sharedTrip.tripId._id} -> slug ${sharedTrip.publicUrl}`);
+        }
+      });
+      setTripIdToSlugMap(mapping);
+      console.log('🔗 Trip ID to Slug mapping:', mapping);
+      
+      // Store shared trip IDs for comparison
+      const sharedTripIds = response.sharedTrips.map(st => st.tripId._id);
+      console.log('📋 Available shared trip IDs:', sharedTripIds);
+      
+      return sharedTripIds;
     } catch (error) {
       console.error('Error fetching shared trips:', error);
-    }
-  };
-
-  const fetchPosts = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get(`/api/community/posts?page=${currentPage}&limit=10&search=${searchTerm}&sort=${sortBy}`);
-      setPosts(response.posts);
-      setTotalPages(response.pagination.pages);
-    } catch (error) {
-      console.error('Error fetching community posts:', error);
-      showToast('error', 'Error', 'Failed to load community posts');
-    } finally {
-      setLoading(false);
+      return [];
     }
   };
 
@@ -140,7 +189,9 @@ const CommunityPage: React.FC = () => {
 
     try {
       setLikingPost(postId);
-      const response = await api.post(`/api/community/posts/${postId}/like`);
+      const response = await api.post(`/api/community/posts/${postId}/like`) as {
+        isLiked: boolean;
+      };
       
       setPosts(prev => prev.map(post => {
         if (post._id === postId) {
@@ -176,7 +227,7 @@ const CommunityPage: React.FC = () => {
 
     try {
       setSubmittingComment(true);
-      const newComment = await api.post(`/api/community/posts/${postId}/comments`, { text: commentText });
+      const newComment = await api.post(`/api/community/posts/${postId}/comments`, { text: commentText }) as Comment;
       
       setPosts(prev => prev.map(post => {
         if (post._id === postId) {
@@ -207,20 +258,36 @@ const CommunityPage: React.FC = () => {
 
     try {
       setCloningPost(post._id);
-      const response = await api.post(`/api/community/posts/${post._id}/clone`, {
-        title: `${post.title} (Cloned)`,
-        description: post.description
-      });
       
-      showToast('success', 'Trip Cloned!', 'The trip has been added to your trips');
-      navigate(`/itinerary-builder/${response.tripId}`);
-    } catch (error) {
-      console.error('Error cloning trip:', error);
-      if (error.response?.status === 400) {
-        showToast('error', 'Already Cloned', 'You have already cloned this trip');
-      } else {
-        showToast('error', 'Error', 'Failed to clone trip');
+      // Find the shared trip slug for this post
+      const sharedTripSlug = tripIdToSlugMap[post.tripId._id];
+      if (!sharedTripSlug) {
+        showToast('error', 'Error', 'This trip is not available for cloning');
+        return;
       }
+
+      const response = await api.post(`/api/shared/clone/${sharedTripSlug}`) as {
+        message: string;
+        trip: any;
+      };
+      
+      // Update the post's clone count
+      setPosts(prev => prev.map(p => {
+        if (p._id === post._id) {
+          return {
+            ...p,
+            clones: [...p.clones, { userId: user.id, clonedAt: new Date().toISOString() }]
+          };
+        }
+        return p;
+      }));
+
+      showToast('success', 'Trip Cloned!', 'Trip has been cloned to your account successfully!');
+      navigate('/my-trips');
+    } catch (error: any) {
+      console.error('Error cloning trip:', error);
+      const errorMessage = error.response?.data?.message || 'Failed to clone trip';
+      showToast('error', 'Error', errorMessage);
     } finally {
       setCloningPost(null);
     }
@@ -267,7 +334,8 @@ const CommunityPage: React.FC = () => {
       showToast('success', 'Shared to Community!', 'Your trip is now visible to the community');
       setShowTripSelectionModal(false);
       setSelectedTripId(null);
-      fetchPosts(); // Refresh the posts
+      // Refresh the posts by updating the current page
+      setCurrentPage(1);
     } catch (error) {
       console.error('Error sharing to community:', error);
       showToast('error', 'Error', 'Failed to share to community');
@@ -598,8 +666,13 @@ const CommunityPage: React.FC = () => {
 
                       <button
                         onClick={() => handleClone(post)}
-                        disabled={cloningPost === post._id}
-                        className="flex items-center space-x-2 px-4 py-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                        disabled={cloningPost === post._id || !tripIdToSlugMap[post.tripId._id]}
+                        className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+                          tripIdToSlugMap[post.tripId._id]
+                            ? 'text-green-600 hover:bg-green-50'
+                            : 'text-gray-400 cursor-not-allowed'
+                        }`}
+                        title={!tripIdToSlugMap[post.tripId._id] ? 'Trip needs to be shared first before it can be cloned' : ''}
                       >
                         <Copy className="h-5 w-5" />
                         <span>{post.clones.length} Cloned</span>
@@ -607,10 +680,28 @@ const CommunityPage: React.FC = () => {
                     </div>
 
                     <Link
-                      to={`/shared/${post.tripId._id}`}
-                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      to={tripIdToSlugMap[post.tripId._id] ? `/shared/${tripIdToSlugMap[post.tripId._id]}` : '#'}
+                      onClick={(e) => {
+                        const generatedUrl = tripIdToSlugMap[post.tripId._id] ? `/shared/${tripIdToSlugMap[post.tripId._id]}` : '#';
+                        console.log('🔍 View Trip clicked:', {
+                          postTitle: post.title,
+                          postTripId: post.tripId._id,
+                          mappedSlug: tripIdToSlugMap[post.tripId._id],
+                          generatedUrl: generatedUrl,
+                          allMappings: tripIdToSlugMap
+                        });
+                        if (!tripIdToSlugMap[post.tripId._id]) {
+                          e.preventDefault();
+                          showToast('info', 'Trip Not Shared', 'This trip needs to be shared first before it can be viewed. The trip owner should share it from their My Trips page.');
+                        }
+                      }}
+                      className={`px-6 py-2 rounded-lg transition-colors ${
+                        tripIdToSlugMap[post.tripId._id] 
+                          ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                          : 'bg-gray-400 text-white cursor-not-allowed'
+                      }`}
                     >
-                      View Trip
+                      {tripIdToSlugMap[post.tripId._id] ? 'View Trip' : 'Not Shared'}
                     </Link>
                   </div>
 

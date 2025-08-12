@@ -32,13 +32,15 @@ import AdminRoute from './components/AdminRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
+import { NotificationProvider } from './context/NotificationContext';
 
 function App() {
   return (
     <ErrorBoundary>
       <ToastProvider>
         <AuthProvider>
-          <Router>
+          <NotificationProvider>
+            <Router>
             <div className="min-h-screen bg-gradient-to-br from-bright-blue via-bright-purple to-bright-pink">
               <AnimatePresence mode="wait">
                 <Routes>
@@ -139,6 +141,7 @@ function App() {
               </AnimatePresence>
             </div>
           </Router>
+          </NotificationProvider>
         </AuthProvider>
       </ToastProvider>
     </ErrorBoundary>

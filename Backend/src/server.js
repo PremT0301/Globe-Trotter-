@@ -10,6 +10,7 @@ const budgetRoutes = require('./routes/budgets');
 const expenseRoutes = require('./routes/expenses');
 const sharedRoutes = require('./routes/shared');
 const communityRoutes = require('./routes/community');
+const notificationRoutes = require('./routes/notifications');
 
 const adminRoutes = require('./routes/admin');
 const dashboardRoutes = require('./routes/dashboard');
@@ -41,6 +42,7 @@ app.use('/api/budgets', budgetRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/api/shared', sharedRoutes);
 app.use('/api/community', communityRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 app.use('/api/admin', adminRoutes);
 app.use('/api/dashboard', dashboardRoutes);

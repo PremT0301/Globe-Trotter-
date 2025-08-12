@@ -167,8 +167,19 @@ const ActivitySearch: React.FC = () => {
   };
 
   const handleBookNow = (website: string) => {
-    // Open the activity website in a new tab
-    window.open(website, '_blank', 'noopener,noreferrer');
+    // Check if website URL is valid
+    if (website && website.startsWith('http')) {
+      // Show a confirmation dialog before opening external link
+      const confirmed = window.confirm(
+        'You are about to visit an external booking website. Do you want to continue?\n\nNote: You will be redirected to a third-party booking platform.'
+      );
+      if (confirmed) {
+        window.open(website, '_blank', 'noopener,noreferrer');
+      }
+    } else {
+      // If no valid website, show a more informative message
+      showToast('info', 'Booking Information', 'This activity is available for booking. Please contact the activity provider directly or check back later for online booking options.');
+    }
   };
 
   // Enhanced background particles with more variety

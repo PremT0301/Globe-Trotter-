@@ -7,6 +7,7 @@ const Budget = require('../models/Budget');
 const Activity = require('../models/Activity');
 const City = require('../models/City');
 const CommunityPost = require('../models/CommunityPost');
+const NotificationService = require('../lib/notificationService');
 
 const router = express.Router();
 

@@ -4,6 +4,7 @@ const CommunityPost = require('../models/CommunityPost');
 const Trip = require('../models/Trip');
 const User = require('../models/User');
 const { authenticateToken } = require('../middleware/auth');
+const NotificationService = require('../lib/notificationService');
 
 // Get all community posts (public feed)
 router.get('/posts', async (req, res) => {
@@ -105,6 +106,18 @@ router.post('/posts/:postId/like', authenticateToken, async (req, res) => {
     } else {
       // Like
       post.likes.push(req.user.id);
+      
+      // Create notification for the post owner
+      try {
+        await NotificationService.createLikeNotification(
+          req.user.id,
+          post.tripId,
+          post._id
+        );
+      } catch (notificationError) {
+        console.error('Error creating like notification:', notificationError);
+        // Don't fail the like operation if notification fails
+      }
     }
 
     await post.save();
@@ -134,6 +147,19 @@ router.post('/posts/:postId/comments', authenticateToken, async (req, res) => {
     });
 
     await post.save();
+
+    // Create notification for the post owner
+    try {
+      await NotificationService.createCommentNotification(
+        req.user.id,
+        post.tripId,
+        post._id,
+        text.trim()
+      );
+    } catch (notificationError) {
+      console.error('Error creating comment notification:', notificationError);
+      // Don't fail the comment operation if notification fails
+    }
 
     const populatedPost = await CommunityPost.findById(post._id)
       .populate('comments.userId', 'name profilePhoto');
@@ -188,6 +214,18 @@ router.post('/posts/:postId/clone', authenticateToken, async (req, res) => {
       clonedAt: new Date()
     });
     await post.save();
+
+    // Create notification for the post owner
+    try {
+      await NotificationService.createCloneNotification(
+        req.user.id,
+        post.tripId,
+        post._id
+      );
+    } catch (notificationError) {
+      console.error('Error creating clone notification:', notificationError);
+      // Don't fail the clone operation if notification fails
+    }
 
     res.status(201).json({
       message: 'Trip cloned successfully',
