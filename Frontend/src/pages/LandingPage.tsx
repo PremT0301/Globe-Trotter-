@@ -68,7 +68,7 @@ const LandingPage: React.FC = () => {
     {
       name: "Sarah Johnson",
       role: "Travel Blogger",
-      content: "GlobeTrotter made planning my European adventure so easy! The AI suggestions were spot-on.",
+      content: "GlobeTrotter made planning my European adventure so easy! The suggestions were spot-on.",
       rating: 5,
       image: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=1",
       avatar: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=50&h=50&dpr=1"
@@ -249,7 +249,7 @@ const LandingPage: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, delay: 0.4 }}
             >
-              Plan, explore, and share unforgettable travel experiences with our AI-powered platform
+              Plan, explore, and share unforgettable travel experiences with our platform
             </motion.p>
           </motion.div>
 
