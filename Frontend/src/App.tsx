@@ -94,7 +94,7 @@ function App() {
                     </ProtectedRoute>
                   } />
                   <Route path="/shared/:tripId" element={<SharedItinerary />} />
-        <Route path="/explore" element={<ExplorePage />} />
+        <Route path="/explore" element={<><Navbar /><ExplorePage /></>} />
                   <Route path="/profile" element={
                     <ProtectedRoute>
                       <><Navbar /><UserProfile /></>

@@ -459,7 +459,6 @@ const LoginPage: React.FC = () => {
             <p className="text-sm text-gray-600">
                 <span className="font-semibold text-blue-600">Demo Access:</span><br />
               <span className="font-medium">Admin:</span> admin@globetrotter.com / admin123456<br />
-              <span className="font-medium">User:</span> user@example.com / password
             </p>
             </motion.div>
         </motion.form>
