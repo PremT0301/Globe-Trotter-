@@ -16,6 +16,7 @@ const tripSchema = new mongoose.Schema(
       default: 'Adventure'
     },
     coverPhoto: { type: String },
+    imageUrl: { type: String }, // Cloudinary image URL
     status: { 
       type: String, 
       enum: ['Planning', 'Active', 'Completed', 'Cancelled'],

@@ -131,7 +131,43 @@ const CreateTrip: React.FC = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const response = await api.post('/api/trips', formData) as any;
+      // Create FormData to handle file upload
+      const tripFormData = new FormData();
+      tripFormData.append('title', formData.title);
+      tripFormData.append('destination', formData.destination);
+      tripFormData.append('startDate', formData.startDate);
+      tripFormData.append('endDate', formData.endDate);
+      tripFormData.append('travelers', formData.travelers.toString());
+      if (formData.budget) tripFormData.append('budget', formData.budget);
+      if (formData.description) tripFormData.append('description', formData.description);
+      tripFormData.append('tripType', formData.tripType);
+      if (formData.image) tripFormData.append('image', formData.image);
+
+      // Debug logging
+      console.log('📤 CreateTrip: Form data being sent:', {
+        title: formData.title,
+        destination: formData.destination,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        travelers: formData.travelers,
+        budget: formData.budget,
+        description: formData.description,
+        tripType: formData.tripType,
+        hasImage: !!formData.image,
+        imageDetails: formData.image ? {
+          name: formData.image.name,
+          size: formData.image.size,
+          type: formData.image.type
+        } : null
+      });
+
+      // Log FormData contents
+      for (let [key, value] of tripFormData.entries()) {
+        console.log('📤 CreateTrip: FormData entry:', key, value);
+      }
+
+      const response = await api.post('/api/trips', tripFormData) as any;
+      
       showToast('success', 'Trip Created!', 'Your trip has been successfully created.');
       setCreatedTripId(response._id);
       setShowShareModal(true);
