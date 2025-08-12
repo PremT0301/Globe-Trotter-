@@ -3,38 +3,63 @@ const { Readable } = require('stream');
 
 class PhotoService {
   /**
-   * Upload a photo to Cloudinary
-   * @param {Buffer} fileBuffer - The file buffer from multer
-   * @param {string} folder - The folder to upload to (e.g., 'profile-photos', 'trip-photos')
-   * @param {string} publicId - Optional public ID for the image
-   * @returns {Promise<Object>} - Cloudinary upload result
+   * Upload image to Cloudinary
+   * @param {Buffer} imageBuffer - Image buffer
+   * @param {string} folder - Cloudinary folder (e.g., 'trips', 'profiles')
+   * @param {string} publicId - Public ID for the image
+   * @returns {Promise<Object>} Cloudinary upload result
    */
-  static async uploadPhoto(fileBuffer, folder = 'general', publicId = null) {
+  static async uploadImage(imageBuffer, folder = 'trips', publicId = null) {
     try {
-      // Convert buffer to stream for Cloudinary
-      const stream = Readable.from(fileBuffer);
+      console.log('📸 PhotoService: Starting image upload', {
+        bufferSize: imageBuffer?.length,
+        folder,
+        publicId,
+        cloudinaryConfig: {
+          cloud_name: process.env.CLOUDINARY_CLOUD_NAME ? 'Set' : 'Missing',
+          api_key: process.env.CLOUDINARY_API_KEY ? 'Set' : 'Missing',
+          api_secret: process.env.CLOUDINARY_API_SECRET ? 'Set' : 'Missing'
+        }
+      });
+
+      if (!imageBuffer || !Buffer.isBuffer(imageBuffer)) {
+        throw new Error('Invalid image buffer provided');
+      }
+
+      // Convert buffer to stream
+      const stream = Readable.from(imageBuffer);
       
       // Upload options
       const uploadOptions = {
         folder: folder,
         resource_type: 'image',
         transformation: [
-          { width: 800, height: 800, crop: 'limit' }, // Resize if too large
-          { quality: 'auto:good' } // Optimize quality
+          { width: 800, height: 600, crop: 'fill', quality: 'auto' },
+          { fetch_format: 'auto' }
         ]
       };
 
+      // Add public ID if provided
       if (publicId) {
         uploadOptions.public_id = publicId;
       }
+
+      console.log('📸 PhotoService: Upload options:', uploadOptions);
 
       return new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
           uploadOptions,
           (error, result) => {
             if (error) {
+              console.error('❌ PhotoService: Cloudinary upload error:', error);
               reject(error);
             } else {
+              console.log('✅ PhotoService: Upload successful:', {
+                public_id: result.public_id,
+                secure_url: result.secure_url,
+                format: result.format,
+                size: result.bytes
+              });
               resolve(result);
             }
           }
@@ -43,40 +68,34 @@ class PhotoService {
         stream.pipe(uploadStream);
       });
     } catch (error) {
-      throw new Error(`Failed to upload photo: ${error.message}`);
+      console.error('❌ PhotoService: Error in uploadImage:', error);
+      throw new Error(`Failed to upload image: ${error.message}`);
     }
   }
 
   /**
-   * Delete a photo from Cloudinary
-   * @param {string} publicId - The public ID of the image to delete
-   * @returns {Promise<Object>} - Cloudinary deletion result
+   * Delete image from Cloudinary
+   * @param {string} publicId - Public ID of the image to delete
+   * @returns {Promise<Object>} Cloudinary deletion result
    */
-  static async deletePhoto(publicId) {
+  static async deleteImage(publicId) {
     try {
       const result = await cloudinary.uploader.destroy(publicId);
       return result;
     } catch (error) {
-      throw new Error(`Failed to delete photo: ${error.message}`);
+      console.error('Error deleting image from Cloudinary:', error);
+      throw new Error('Failed to delete image');
     }
   }
 
   /**
-   * Get optimized URL for a photo
-   * @param {string} publicId - The public ID of the image
-   * @param {Object} options - Transformation options
-   * @returns {string} - Optimized URL
+   * Generate a unique public ID for trip images
+   * @param {string} tripId - Trip ID
+   * @param {string} userId - User ID
+   * @returns {string} Unique public ID
    */
-  static getOptimizedUrl(publicId, options = {}) {
-    const defaultOptions = {
-      width: 400,
-      height: 400,
-      crop: 'fill',
-      quality: 'auto:good'
-    };
-
-    const finalOptions = { ...defaultOptions, ...options };
-    return cloudinary.url(publicId, finalOptions);
+  static generateTripImageId(tripId, userId) {
+    return `trips/${userId}/${tripId}_${Date.now()}`;
   }
 }
 

@@ -46,7 +46,7 @@ const MyTrips: React.FC = () => {
           startDate: trip.startDate,
           endDate: trip.endDate,
         dates: `${formatDate(trip.startDate)} - ${formatDate(trip.endDate)}`,
-        image: trip.coverPhoto || 'https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
+        image: trip.imageUrl || trip.coverPhoto || 'https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
           status: status,
           collaborators: 1,
         budget: trip.budget || 0,
@@ -111,20 +111,23 @@ const MyTrips: React.FC = () => {
 
   const handleShareTrip = async (tripId: string) => {
     try {
-      const response = await api.post(`/api/shared/${tripId}`);
+      const response = await api.post(`/api/shared/${tripId}`) as any;
       const shareUrl = response.shareUrl;
       
       // Copy to clipboard
       await navigator.clipboard.writeText(shareUrl);
-      showToast('success', 'Trip Shared!', 'Share link copied to clipboard');
+      showToast('success', 'Trip Shared!', 'Trip shared successfully and added to community! Share link copied to clipboard');
       
       // Refresh trips to show shared status
       fetchTrips();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sharing trip:', error);
-      showToast('error', 'Error', 'Failed to share trip');
+      const errorMessage = error.response?.data?.message || 'Failed to share trip';
+      showToast('error', 'Error', errorMessage);
     }
   };
+
+
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -221,16 +224,20 @@ const MyTrips: React.FC = () => {
                 </div>
                 
                 <div className="flex items-center justify-between">
-                  <Link to={`/itinerary/${trip.id}`}>
-                    <motion.button
-                      className="text-blue-600 hover:text-blue-700 font-medium flex items-center"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      View Details
-                      <ArrowRight className="h-4 w-4 ml-1" />
-                    </motion.button>
-                  </Link>
+                  <div className="flex items-center space-x-3">
+                    <Link to={`/itinerary/${trip.id}`}>
+                      <motion.button
+                        className="text-blue-600 hover:text-blue-700 font-medium flex items-center"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        View Details
+                        <ArrowRight className="h-4 w-4 ml-1" />
+                      </motion.button>
+                    </Link>
+                    
+                    
+                  </div>
                   
                   <div className="relative">
                     <motion.button
@@ -272,6 +279,7 @@ const MyTrips: React.FC = () => {
                     <Share2 className="h-4 w-4 mr-2" />
                     Share Trip
                   </button>
+                  
                   <button 
                     onClick={() => handleDeleteTrip(trip.id)}
                     className="w-full px-4 py-2 text-left hover:bg-red-50 text-red-600 flex items-center"

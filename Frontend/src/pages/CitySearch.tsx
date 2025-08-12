@@ -32,7 +32,7 @@ const CitySearch: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'explore' | 'community'>('explore');
   const { showToast } = useToast();
 
-  const [cities, setCities] = useState<{ id: number; name: string; country: string }[]>([]);
+  const [cities, setCities] = useState<{ id: number; name: string; country: string; image?: string; popularityScore?: number }[]>([]);
 
   useEffect(() => {
     fetchCities();
@@ -41,7 +41,7 @@ const CitySearch: React.FC = () => {
 
   const fetchCities = async () => {
     try {
-      const data = await api.get<{ id: number; name: string; country: string }[]>('/api/cities');
+      const data = await api.get<{ id: number; name: string; country: string; image?: string; popularityScore?: number }[]>('/api/cities');
       setCities(data);
       if (data.length > 0) setSelectedCity(data[0].name.toLowerCase());
     } catch (e) {
@@ -93,41 +93,18 @@ const CitySearch: React.FC = () => {
     { id: 'shopping', name: 'Shopping', icon: <Plane className="h-5 w-5" />, color: 'from-indigo-500 to-purple-500' }
   ];
 
-  // Popular cities based on likes (top 4)
-  const popularCities = [
-    {
-      name: 'Paris, France',
-      image: 'https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
-      description: 'The City of Light',
-      attractions: 150,
-      rating: 4.8,
-      likes: 1250
-    },
-    {
-      name: 'Tokyo, Japan',
-      image: 'https://images.pexels.com/photos/2506923/pexels-photo-2506923.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
-      description: 'Modern meets Traditional',
-      attractions: 200,
-      rating: 4.7,
-      likes: 980
-    },
-    {
-      name: 'New York, USA',
-      image: 'https://images.pexels.com/photos/290386/pexels-photo-290386.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
-      description: 'The Big Apple',
-      attractions: 180,
-      rating: 4.6,
-      likes: 850
-    },
-    {
-      name: 'Bali, Indonesia',
-      image: 'https://images.pexels.com/photos/1320684/pexels-photo-1320684.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
-      description: 'Island Paradise',
-      attractions: 120,
-      rating: 4.9,
-      likes: 720
-    }
-  ].sort((a, b) => b.likes - a.likes).slice(0, 4);
+  // Popular cities based on backend data (top 4)
+  const popularCities = cities
+    .sort((a, b) => (b.popularityScore || 0) - (a.popularityScore || 0))
+    .slice(0, 4)
+    .map(city => ({
+      name: `${city.name}, ${city.country}`,
+      image: city.image || 'https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
+      description: `Explore ${city.name}`,
+      attractions: Math.floor(Math.random() * 200) + 50,
+      rating: 4.5 + Math.random() * 0.5,
+      likes: Math.floor(Math.random() * 1000) + 200
+    }));
 
   const attractions = {
     paris: [

@@ -6,6 +6,7 @@ const citySchema = new mongoose.Schema(
     country: { type: String, required: true, index: true },
     costIndex: { type: Number },
     popularityScore: { type: Number },
+    image: { type: String }, // URL to city image
   },
   { timestamps: false }
 );

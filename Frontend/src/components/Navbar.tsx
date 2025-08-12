@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, User, LogOut, Settings, Globe, Plane, Heart, Zap, Sparkles, Camera, Shield } from 'lucide-react';
+import { Menu, X, User, LogOut, Settings, Globe, Plane, Heart, Zap, Sparkles, Camera, Shield, Users } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import ProfilePhotoUpload from './ProfilePhotoUpload';
 
@@ -23,8 +23,8 @@ const Navbar: React.FC = () => {
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: <Globe className="h-5 w-5" /> },
     { name: 'My Trips', path: '/my-trips', icon: <Plane className="h-5 w-5" /> },
-    { name: 'Explore', path: '/explore', icon: <Heart className="h-5 w-5" /> },
     { name: 'Activities', path: '/activity-search', icon: <Zap className="h-5 w-5" /> },
+    { name: 'Community', path: '/community', icon: <Users className="h-5 w-5" /> },
   ];
 
   const handleLogout = () => {

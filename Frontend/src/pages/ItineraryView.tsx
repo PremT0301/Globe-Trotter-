@@ -159,29 +159,15 @@ const ItineraryView: React.FC = () => {
       
       // Copy to clipboard
       await navigator.clipboard.writeText(shareUrl);
-      showToast('success', 'Trip Shared!', 'Share link copied to clipboard');
-    } catch (error) {
+      showToast('success', 'Trip Shared!', 'Trip shared successfully and added to community! Share link copied to clipboard');
+    } catch (error: any) {
       console.error('Error sharing trip:', error);
-      showToast('error', 'Error', 'Failed to share trip');
+      const errorMessage = error.response?.data?.message || 'Failed to share trip';
+      showToast('error', 'Error', errorMessage);
     }
   };
 
-  const handleExportPDF = async () => {
-    try {
-      // Create a link element to trigger download
-      const link = document.createElement('a');
-      link.href = `${process.env.REACT_APP_API_URL || 'http://localhost:4000'}/api/pdf/${tripId}`;
-      link.download = `${tripData?.title || 'trip'}_itinerary.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      showToast('success', 'PDF Downloaded!', 'Your itinerary PDF has been downloaded');
-    } catch (error) {
-      console.error('Error exporting PDF:', error);
-      showToast('error', 'Error', 'Failed to export PDF');
-    }
-  };
+
 
   if (loading) {
     return (
@@ -267,13 +253,7 @@ const ItineraryView: React.FC = () => {
               <Share2 className="h-4 w-4 mr-2" />
               Share Trip
             </button>
-            <button 
-              onClick={handleExportPDF}
-              className="flex items-center bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors duration-200"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Export PDF
-            </button>
+
           </div>
         </motion.div>
 
