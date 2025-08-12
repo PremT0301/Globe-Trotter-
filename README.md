@@ -1,7 +1,6 @@
 # 🌍 GlobeTrotter - Travel Planning Application
 
-**Team Number:** 227  
-**Team Leader:** Jay Sadhu  
+ 
 **Demo Video:** [Watch Demo](https://drive.google.com/file/d/1ANBdUSdRV_nwD5EV0VuFNYPblBWLv-6K/view?usp=drive_link)
 
 ---
