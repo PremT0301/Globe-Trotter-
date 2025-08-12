@@ -46,7 +46,7 @@ const MyTrips: React.FC = () => {
           startDate: trip.startDate,
           endDate: trip.endDate,
         dates: `${formatDate(trip.startDate)} - ${formatDate(trip.endDate)}`,
-        image: trip.coverPhoto || 'https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
+        image: trip.imageUrl || trip.coverPhoto || 'https://images.pexels.com/photos/338515/pexels-photo-338515.jpeg?auto=compress&cs=tinysrgb&w=400&h=250&dpr=1',
           status: status,
           collaborators: 1,
         budget: trip.budget || 0,
@@ -111,7 +111,7 @@ const MyTrips: React.FC = () => {
 
   const handleShareTrip = async (tripId: string) => {
     try {
-      const response = await api.post(`/api/shared/${tripId}`);
+      const response = await api.post(`/api/shared/${tripId}`) as any;
       const shareUrl = response.shareUrl;
       
       // Copy to clipboard

@@ -20,6 +20,7 @@ const AdminUsers: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; userId: string; userName: string } | null>(null);
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -60,6 +61,29 @@ const AdminUsers: React.FC = () => {
       console.error('Error updating user status:', error);
       showToast('error', 'Error', 'Failed to update user status');
     }
+  };
+
+  const deleteUser = async (userId: string, userName: string) => {
+    setDeleteConfirm({ show: true, userId, userName });
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!deleteConfirm) return;
+
+    try {
+      await api.delete(`/api/admin/users/${deleteConfirm.userId}`);
+      showToast('success', 'Success', `User "${deleteConfirm.userName}" deleted successfully`);
+      fetchUsers();
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      showToast('error', 'Error', 'Failed to delete user');
+    } finally {
+      setDeleteConfirm(null);
+    }
+  };
+
+  const cancelDeleteUser = () => {
+    setDeleteConfirm(null);
   };
 
   const filteredUsers = users.filter(user => {
@@ -267,6 +291,15 @@ const AdminUsers: React.FC = () => {
                         >
                           {user.isActive ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
                         </button>
+
+                        <button
+                          onClick={() => deleteUser(user._id, user.name)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete User"
+                          disabled={user.role === 'admin'}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
                       </div>
                     </td>
                   </motion.tr>
@@ -283,6 +316,52 @@ const AdminUsers: React.FC = () => {
           )}
         </motion.div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      {deleteConfirm && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          onClick={cancelDeleteUser}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-3d-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                <Trash2 className="h-5 w-5 text-red-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">Delete User</h3>
+            </div>
+            
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete user <strong>"{deleteConfirm.userName}"</strong>? 
+              This action cannot be undone and will also delete all their trips, itineraries, budgets, and expenses.
+            </p>
+            
+            <div className="flex space-x-3">
+              <button
+                onClick={cancelDeleteUser}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDeleteUser}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors"
+              >
+                Delete User
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
     </div>
   );
 };

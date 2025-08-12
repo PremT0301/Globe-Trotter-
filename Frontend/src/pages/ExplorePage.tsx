@@ -4,6 +4,7 @@ import { Search, Filter, Star, MapPin, Users, Clock, Heart, ExternalLink, Globe,
 import { Link } from 'react-router-dom';
 import { api } from '../lib/api';
 import { useToast } from '../context/ToastContext';
+import Navbar from '../components/Navbar';
 
 interface SharedTrip {
   _id: string;
@@ -116,10 +117,13 @@ const ExplorePage: React.FC = () => {
 
   if (loading && sharedTrips.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading shared trips...</p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading shared trips...</p>
+          </div>
         </div>
       </div>
     );
@@ -127,6 +131,7 @@ const ExplorePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      <Navbar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <motion.div

@@ -20,10 +20,15 @@ function getAuthToken(): string | null {
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    ...(options.headers || {}),
-  };
+  const headers: HeadersInit = {};
+  
+  // Only set Content-Type if not FormData (browser will set it automatically for FormData)
+  if (!(options.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
+  }
+  
+  Object.assign(headers, options.headers || {});
+  
   const token = getAuthToken();
   if (token) {
     (headers as any)['Authorization'] = `Bearer ${token}`;
@@ -52,9 +57,29 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
 export const api = {
   get: <T>(path: string) => request<T>(path),
-  post: <T>(path: string, body?: unknown) => request<T>(path, { method: 'POST', body: JSON.stringify(body) }),
-  put: <T>(path: string, body?: unknown) => request<T>(path, { method: 'PUT', body: JSON.stringify(body) }),
-  delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
+  post: <T>(path: string, body?: unknown) => {
+    const options: RequestInit = { method: 'POST' };
+    
+    if (body instanceof FormData) {
+      options.body = body;
+    } else if (body !== undefined) {
+      options.body = JSON.stringify(body);
+    }
+    
+    return request<T>(path, options);
+  },
+  put: <T>(path: string, body?: unknown) => {
+    const options: RequestInit = { method: 'PUT' };
+    
+    if (body instanceof FormData) {
+      options.body = body;
+    } else if (body !== undefined) {
+      options.body = JSON.stringify(body);
+    }
+    
+    return request<T>(path, options);
+  },
+  delete: <T>(path: string) => request<T>(path),
 };
 
 

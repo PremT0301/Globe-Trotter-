@@ -259,10 +259,34 @@ router.delete('/users/:userId', async (req, res) => {
     if (user.role === 'admin') {
       return res.status(403).json({ message: 'Cannot delete admin users' });
     }
-    
+
+    console.log(`🗑️ Admin: Deleting user ${user.name} (${user._id}) and all related data`);
+
+    // Delete all user's trips (this will cascade to delete itineraries, budgets, etc.)
+    const userTrips = await Trip.find({ userId: req.params.userId });
+    console.log(`🗑️ Admin: Found ${userTrips.length} trips to delete`);
+
+    for (const trip of userTrips) {
+      // Delete trip (cascade will handle related data)
+      await Trip.findByIdAndDelete(trip._id);
+      console.log(`🗑️ Admin: Deleted trip ${trip.title}`);
+    }
+
+    // Delete user
     await User.findByIdAndDelete(req.params.userId);
+    console.log(`🗑️ Admin: Deleted user ${user.name}`);
+
+    // Get updated stats
+    const totalUsers = await User.countDocuments();
+    const totalTrips = await Trip.countDocuments();
     
-    res.json({ message: 'User deleted successfully' });
+    res.json({ 
+      message: 'User and all related data deleted successfully',
+      stats: {
+        totalUsers,
+        totalTrips
+      }
+    });
   } catch (error) {
     console.error('Admin delete user error:', error);
     res.status(500).json({ message: 'Failed to delete user' });
@@ -363,15 +387,34 @@ router.put('/trips/:tripId/status', async (req, res) => {
 // Delete trip
 router.delete('/trips/:tripId', async (req, res) => {
   try {
-    const trip = await Trip.findById(req.params.tripId);
+    const trip = await Trip.findById(req.params.tripId).populate('userId', 'name email');
     
     if (!trip) {
       return res.status(404).json({ message: 'Trip not found' });
     }
-    
+
+    console.log(`🗑️ Admin: Deleting trip ${trip.title} (${trip._id}) and all related data`);
+
+    // Delete trip (cascade will handle itineraries, budgets, etc.)
     await Trip.findByIdAndDelete(req.params.tripId);
+    console.log(`🗑️ Admin: Deleted trip ${trip.title}`);
+
+    // Get updated stats
+    const totalTrips = await Trip.countDocuments();
+    const totalUsers = await User.countDocuments();
     
-    res.json({ message: 'Trip deleted successfully' });
+    res.json({ 
+      message: 'Trip and all related data deleted successfully',
+      deletedTrip: {
+        title: trip.title,
+        destination: trip.destination,
+        user: trip.userId ? `${trip.userId.name} (${trip.userId.email})` : 'Unknown User'
+      },
+      stats: {
+        totalTrips,
+        totalUsers
+      }
+    });
   } catch (error) {
     console.error('Admin delete trip error:', error);
     res.status(500).json({ message: 'Failed to delete trip' });
